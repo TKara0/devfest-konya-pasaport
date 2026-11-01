@@ -49,7 +49,7 @@ export function Header({ me, view, onNav, onLogout, onAuth, pendingEmail }: Prop
         <div className="mark">
           Devfest<span>Konya</span>
           <em>’26</em>
-          <small>Pasaport</small>
+          <small>Pasaport{import.meta.env.VITE_DEMO === 'true' && <span className="demo-badge">Demo</span>}</small>
         </div>
 
         {me && onNav && (

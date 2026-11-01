@@ -1,0 +1,7 @@
+{
+  "name": "devfest-konya-pasaport",
+  "private": true,
+  "scripts": {
+    "demo": "node scripts/demo.mjs"
+  }
+}

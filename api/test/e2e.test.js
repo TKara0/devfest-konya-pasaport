@@ -4,7 +4,7 @@
  */
 import { test, mock, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { FakeFirestore, FieldValue, AggregateField } from './fake-firestore.js';
+import { FakeFirestore, FieldValue, AggregateField } from '../dev/fake-firestore.js';
 
 process.env.CODE_SECRET = 'e2e-test-secret-0123456789';
 const db = new FakeFirestore();

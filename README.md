@@ -14,6 +14,26 @@ web/      React uygulaması
 firebase.json, firestore.rules, firestore.indexes.json
 ```
 
+## Hızlı deneme (Firebase gerekmez)
+
+```bash
+npm run demo        # Node.js 22.3+ gerekir; ilk seferde bağımlılıkları kendisi kurar
+```
+
+Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapatınca veriler sıfırlanır. “Gmail ile giriş yap” denince Google yerine test hesabı seçme kutusu çıkar:
+
+| Hesap | Ne için |
+|---|---|
+| `katilimci.demo@gmail.com` (Ayşe Demir) | Kayıtlı katılımcı, biraz ilerlemesi var |
+| `gorevli.demo@gmail.com` | Görevli: saatlik LinkedIn/Instagram kodları, katılımcı adına kod girme |
+| `yonetici.demo@gmail.com` | Yönetici: istatistik, çekiliş CSV'leri, büyük ekran |
+| `yeni.demo@gmail.com` | Kaydı yok: kayıt akışını denemek için |
+| `203301001@ogr.selcuk.edu.tr` | Öğrenci maili: reddedildiğini görmek için |
+
+Kutudan istediğin başka bir adresle de girebilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 10:00'da Salon B'de (`300003`), `300002` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
+
+Demo modu yalnızca `npm run demo` ile çalışır. Normal derlemeye (`npm run build`) ve Cloud Run imajına girmez.
+
 ## Kurallar nasıl garanti ediliyor
 
 | Kural | Nasıl |

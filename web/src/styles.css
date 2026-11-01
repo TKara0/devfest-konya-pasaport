@@ -361,6 +361,11 @@ section > .card + .card, .stat-row + .card { margin-top: 20px; }
 .pending-mail { font-size: 13px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .auth-links { gap: 8px; }
 
+/* Demo modu işaretleri */
+.demo-badge { margin-left: 8px; background: var(--gold-100); color: var(--red-900); padding: 1px 6px; border-radius: 4px; letter-spacing: 0.1em; }
+.demo-hint { position: relative; z-index: 1; margin: 12px 0 0; font-size: 12.5px; color: #f0cdbf; }
+.demo-hint b { font-family: var(--f-mono); color: var(--gold-100); font-weight: 600; }
+
 /* ---------- Alt bant ---------- */
 .band { height: clamp(110px, 22vw, 240px); margin-top: 8px; background: url('./assets/band.webp') center bottom / cover no-repeat; }
 

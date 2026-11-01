@@ -60,6 +60,11 @@ export function CodeEntry({ firstName, onRedeemed }: Props) {
           {busy ? 'Kontrol ediliyor…' : 'Kodu kullan'}
         </button>
       </form>
+      {import.meta.env.VITE_DEMO === 'true' && (
+        <p className="demo-hint">
+          Demo kodları: stant <b>100001–100006</b>, oyun <b>200001–200003</b>, oturum <b>300001–300011</b>
+        </p>
+      )}
       <div aria-live="polite">
         {result && (
           <div className={`result ${result.ok ? 'ok' : 'err'}`}>

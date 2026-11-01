@@ -3,13 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "seed": "node scripts/seed.js",
     "test": "node --test test/unit.test.js",
-    "test:e2e": "node --test --experimental-test-module-mocks test/e2e.test.js"
+    "test:e2e": "node --test --experimental-test-module-mocks test/e2e.test.js",
+    "demo": "node --experimental-test-module-mocks --no-warnings=ExperimentalWarning dev/demo.js"
   },
   "dependencies": {
     "express": "^5.1.0",
