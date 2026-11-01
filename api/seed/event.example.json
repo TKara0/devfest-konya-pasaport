@@ -1,0 +1,86 @@
+{
+  "event": {
+    "name": "DevFest Konya '26",
+    "date": "2026-11-21",
+    "venue": "Sultan Alparslan Kongre Merkezi"
+  },
+  "roles": {
+    "admins": ["yonetici@example.com"],
+    "staff": []
+  },
+  "tasks": [
+    {
+      "id": "stand",
+      "name": "Stant Turu",
+      "desc": "Her stantta bir kod var",
+      "icon": "booth",
+      "type": "static",
+      "reward": 1,
+      "rewardLabel": "Stant başına 1 hak",
+      "steps": [
+        { "id": "stand-gdg", "label": "GDG on Campus Selçuk" },
+        { "id": "stand-labirent", "label": "Hogwarts Labirenti" },
+        { "id": "stand-sapka", "label": "Seçmen Şapka" },
+        { "id": "stand-gazete", "label": "Kehanet Postası" },
+        { "id": "stand-sponsor-a", "label": "Sponsor Stantı A" },
+        { "id": "stand-sponsor-b", "label": "Sponsor Stantı B" }
+      ]
+    },
+    {
+      "id": "session",
+      "name": "Oturumlar",
+      "desc": "Oturum sonunda kod gösterilir",
+      "icon": "hall",
+      "type": "session",
+      "reward": 1,
+      "rewardLabel": "Oturum başına 1 hak"
+    },
+    {
+      "id": "game",
+      "name": "Oyun İstasyonları",
+      "desc": "Oyunu bitir, kodu al",
+      "icon": "game",
+      "type": "static",
+      "reward": 1,
+      "rewardLabel": "Oyun başına 1 hak",
+      "steps": [
+        { "id": "game-reflex", "label": "Reflex Click" },
+        { "id": "game-duello", "label": "Büyü Düellosu" },
+        { "id": "game-quidditch", "label": "Quidditch Kaçışı" }
+      ]
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn Paylaşımı",
+      "desc": "Paylaşımını görevliye göster",
+      "icon": "share",
+      "type": "rotating",
+      "rotateMinutes": 60,
+      "reward": 3,
+      "rewardLabel": "3 hak"
+    },
+    {
+      "id": "instagram",
+      "name": "Instagram Hikâyesi",
+      "desc": "Hikâyeni görevliye göster",
+      "icon": "camera",
+      "type": "rotating",
+      "rotateMinutes": 60,
+      "reward": 2,
+      "rewardLabel": "2 hak"
+    }
+  ],
+  "sessions": [
+    { "id": "s01", "slot": "09:00", "hall": "Ana Salon", "title": "Açılış ve Keynote", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s02", "slot": "10:00", "hall": "Salon A", "title": "Oturum 2", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s03", "slot": "10:00", "hall": "Salon B", "title": "Oturum 3", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s04", "slot": "11:00", "hall": "Salon A", "title": "Oturum 4", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s05", "slot": "11:00", "hall": "Salon B", "title": "Oturum 5", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s06", "slot": "13:30", "hall": "Salon A", "title": "Oturum 6", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s07", "slot": "13:30", "hall": "Salon B", "title": "Oturum 7", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s08", "slot": "14:30", "hall": "Salon A", "title": "Oturum 8", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s09", "slot": "14:30", "hall": "Salon B", "title": "Oturum 9", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s10", "slot": "15:30", "hall": "Salon A", "title": "Oturum 10", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s11", "slot": "15:30", "hall": "Salon B", "title": "Oturum 11", "speaker": "Konuşmacı belirlenecek" }
+  ]
+}
