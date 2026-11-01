@@ -4,7 +4,8 @@ Katılımcıların stant, oturum ve görev kodlarını girip çekiliş hakkı to
 
 - **Ön yüz:** React + Vite + TypeScript, Firebase Hosting
 - **Giriş:** Firebase Authentication (Google). Kimlik kişisel **Gmail** adresidir; öğrenci/kurum e-postası kabul edilmez. Şifre yok, çıkış yapan kişi aynı Gmail ile girince ilerlemesi geri gelir.
-- **Kayıt:** ad, soyad, Gmail (Google'dan gelir), telefon (isteğe bağlı).
+- **Giriş/kayıt iki yolla:** Gmail adresini yazıp gelen tek kullanımlık bağlantıya tıklamak (şifresiz e-posta bağlantısı) ya da “Google ile giriş yap”.
+- **Kayıt:** ad, soyad, Gmail, telefon (isteğe bağlı).
 - **API:** Node.js + Express, Cloud Run (`europe-west1`)
 - **Veritabanı:** Firestore. Tarayıcı Firestore'a hiç doğrudan erişmez, her şey API üzerinden yapılır.
 
@@ -32,7 +33,11 @@ Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapa
 
 Kutudan istediğin başka bir adresle de girebilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 10:00'da Salon B'de (`300003`), `300002` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
 
-Demo modu yalnızca `npm run demo` ile çalışır. Normal derlemeye (`npm run build`) ve Cloud Run imajına girmez.
+Gmail adresini yazıp “Giriş yap” dersen demoda e-posta gitmez; Gmail'e gidecek bağlantı ekranda gösterilir.
+
+`web/.env` içinde Firebase bilgisi yokken `cd web && npm run dev` de otomatik demo modunda açılır (API için kökte `npm run demo` gerekir).
+
+Demo modu yalnızca yerel geliştirme sunucusunda çalışır. Normal derlemeye (`npm run build`) ve Cloud Run imajına girmez.
 
 ## Kurallar nasıl garanti ediliyor
 
@@ -60,7 +65,7 @@ Demo modu yalnızca `npm run demo` ile çalışır. Normal derlemeye (`npm run b
 ## İlk kurulum (bir kez)
 
 1. **Firebase projesi:** [console.firebase.google.com](https://console.firebase.google.com) → yeni proje → **Blaze** planı (Cloud Run için gerekli). Google Cloud konsolunda bütçe uyarısı kurun.
-2. **Authentication** → Sign-in method → **Google**'ı açın. Özel alan adı kullanacaksanız *Authorized domains*'e ekleyin.
+2. **Authentication** → Sign-in method → **Google**'ı ve **Email/Password → Email link (passwordless sign-in)** seçeneğini açın (Gmail adresine giriş bağlantısı için). Özel alan adı kullanacaksanız *Authorized domains*'e ekleyin.
 3. **Firestore** → veritabanı oluşturun, konum `europe-west1` (ya da `eur3`).
 4. **Web uygulaması** ekleyin, yapılandırmayı `web/.env` dosyasına yazın (`web/.env.example`'a bakın).
    `VITE_FIREBASE_AUTH_DOMAIN` olarak sitenin yayınlandığı alan adını (`<proje>.web.app` ya da özel alan adınız) yazın, yoksa iOS Safari'de giriş bozulabilir.

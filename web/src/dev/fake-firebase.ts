@@ -29,6 +29,12 @@ function makeUser(uid: string, email: string, displayName: string): DemoUser {
   return { uid, email, displayName, getIdToken: async () => `demo:${uid}|${email}` };
 }
 
+/** Test hesabının adresi yazılırsa o hesaba, değilse adrese özel yeni bir hesaba girer. */
+function userForEmail(email: string): DemoUser {
+  const a = ACCOUNTS.find((x) => x.email === email);
+  return a ? makeUser(a.uid, a.email, a.name) : makeUser(`demo-${email.replace(/[^a-z0-9]/g, '-')}`, email, '');
+}
+
 function load(): DemoUser | null {
   try {
     const raw = localStorage.getItem(KEY);
@@ -94,7 +100,7 @@ function chooseAccount(): Promise<DemoUser | null> {
       e.preventDefault();
       const email = (wrap.querySelector('#demo-mail') as HTMLInputElement).value.trim().toLowerCase();
       if (!email.includes('@')) return;
-      done(makeUser(`demo-${email.replace(/[^a-z0-9]/g, '-')}`, email, ''));
+      done(userForEmail(email));
     });
     document.body.appendChild(wrap);
     (wrap.querySelector('button[data-i]') as HTMLButtonElement)?.focus();
@@ -124,6 +130,34 @@ export const getRedirectResult = async () => null;
 export async function signOut() {
   setUser(null);
 }
+/* Gmail bağlantısıyla giriş: demoda e-posta gönderilmez, bağlantı ekranda gösterilir */
+export async function sendSignInLinkToEmail(_auth: unknown, email: string) {
+  const link = `${window.location.origin}/?demoLink=1&email=${encodeURIComponent(email)}`;
+  const wrap = document.createElement('div');
+  wrap.className = 'demo-picker';
+  wrap.innerHTML = `
+    <div class="demo-box" role="dialog" aria-modal="true">
+      <p class="demo-tag">DEMO MODU</p>
+      <h2>Gmail kutusu yerine</h2>
+      <p class="demo-sub">Gerçek sistemde <b>${email}</b> adresine giriş bağlantısı gider. Demoda e-posta gönderilmiyor; bağlantı burada.</p>
+      <a class="demo-link" href="${link}">Gmail’deki bağlantıya tıkla</a>
+      <button type="button" class="demo-cancel">Kapat</button>
+    </div>`;
+  wrap.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (t === wrap || t.closest('.demo-cancel')) wrap.remove();
+  });
+  document.body.appendChild(wrap);
+}
+export function isSignInWithEmailLink(_auth: unknown, href: string) {
+  return new URL(href).searchParams.get('demoLink') === '1';
+}
+export async function signInWithEmailLink(_auth: unknown, email: string) {
+  const u = userForEmail(email.trim().toLowerCase());
+  setUser(u);
+  return { user: u };
+}
+
 export function onAuthStateChanged(_auth: unknown, cb: Listener) {
   listeners.add(cb);
   setTimeout(() => cb(authObj.currentUser), 0);
@@ -148,6 +182,7 @@ style.textContent = `
 .demo-custom div{display:flex;gap:8px}
 .demo-custom input{flex:1;min-width:0;height:40px;border:1px solid var(--line-2);border-radius:8px;padding:0 10px;font-size:15px;background:var(--paper)}
 .demo-custom button{border:0;background:var(--red);color:var(--paper);border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer}
+.demo-link{display:block;text-align:center;margin-top:6px;background:var(--red);color:var(--paper);text-decoration:none;font-weight:700;padding:12px;border-radius:8px}
 .demo-cancel{margin-top:12px;width:100%;border:0;background:none;color:var(--muted);text-decoration:underline;padding:8px;cursor:pointer;font-weight:600}
 `;
 document.head.appendChild(style);

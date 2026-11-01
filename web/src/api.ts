@@ -41,7 +41,10 @@ async function request<T>(path: string, init: RequestInit & { authed?: boolean; 
       code = body?.error?.code || code;
       message = body?.error?.message || message;
     } catch {
-      /* JSON olmayan hata gövdesi */
+      /* JSON olmayan hata gövdesi: yerelde genelde API kapalı demektir */
+      if (import.meta.env.DEV && res.status >= 500) {
+        message = 'Yerel API’ye ulaşılamıyor. Kök klasörde `npm run demo` komutunu çalıştır.';
+      }
     }
     throw new ApiError(res.status, code, message);
   }

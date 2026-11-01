@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getRedirectResult, onAuthStateChanged, type User } from 'firebase/auth';
 import { api, ApiError } from './api';
-import { auth, isGmail, logOut } from './firebase';
+import { auth, completeLoginLink, isGmail, isLoginLink, logOut, storedLinkEmail } from './firebase';
 import { useLeaderboard } from './useLeaderboard';
 import type { EventConfig, Me, RedeemResult } from './types';
 import { Header, allowedViews, type View } from './components/Header';
@@ -42,6 +42,7 @@ function Main({ hash }: { hash: string }) {
   const [authTab, setAuthTab] = useState<AuthTab>('giris');
   const [authKey, setAuthKey] = useState(0);
   const [notice, setNotice] = useState('');
+  const [linkAsk, setLinkAsk] = useState(false);
   const [justDone, setJustDone] = useState<string | null>(null);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<number>(undefined);
@@ -100,6 +101,12 @@ function Main({ hash }: { hash: string }) {
 
   useEffect(() => {
     void getRedirectResult(auth).catch(() => undefined);
+    // Gmail'deki giriş bağlantısıyla açıldıysa girişi tamamla
+    if (isLoginLink()) {
+      const stored = storedLinkEmail();
+      if (stored) void finishLink(stored);
+      else setLinkAsk(true);
+    }
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       setMe(null);
@@ -110,6 +117,17 @@ function Main({ hash }: { hash: string }) {
       }
     });
   }, [loadMe]);
+
+  async function finishLink(email: string) {
+    try {
+      await completeLoginLink(email);
+      setLinkAsk(false);
+    } catch {
+      setLinkAsk(false);
+      window.history.replaceState(null, '', '/');
+      setNotice('Giriş bağlantısı geçersiz ya da süresi dolmuş. Gmail adresini yazıp yeni bağlantı iste.');
+    }
+  }
 
   const openAuth = (tab: AuthTab) => {
     setAuthTab(tab);
@@ -147,7 +165,9 @@ function Main({ hash }: { hash: string }) {
   }
 
   let body: React.ReactNode;
-  if (fatal && phase !== 'signedOut') {
+  if (linkAsk) {
+    body = <LinkConfirm onConfirm={finishLink} />;
+  } else if (fatal && phase !== 'signedOut') {
     body = (
       <div className="auth">
         <div className="card warn">
@@ -215,5 +235,37 @@ function Main({ hash }: { hash: string }) {
         {toast}
       </div>
     </>
+  );
+}
+
+/** Bağlantı başka bir cihazda/tarayıcıda açıldıysa Gmail adresini doğrulatır. */
+function LinkConfirm({ onConfirm }: { onConfirm: (email: string) => Promise<void> }) {
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="auth">
+      <div className="card">
+        <h2>Girişi onayla</h2>
+        <p className="sub small">Bağlantıyı istediğin tarayıcıdan farklı bir yerde açtın. Bağlantının gittiği Gmail adresini yaz.</p>
+        <form
+          className="form"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!isGmail(email.trim())) return;
+            setBusy(true);
+            await onConfirm(email.trim().toLowerCase());
+            setBusy(false);
+          }}
+        >
+          <div className="field">
+            <label htmlFor="link-email">Gmail adresin</label>
+            <input id="link-email" type="email" inputMode="email" autoCapitalize="none" placeholder="ornek@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <button className="btn btn-red" type="submit" disabled={busy}>
+            {busy ? 'Giriş yapılıyor…' : 'Giriş yap'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
