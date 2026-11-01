@@ -39,11 +39,10 @@ export function BigScreen() {
         </div>
         <ol className="screen-list">
           {top.slice(3, 20).map((r) => (
-            <li key={r.username}>
+            <li key={r.id}>
               <span className="rank">{r.rank}</span>
               <span className="who">
                 <b>{r.name}</b>
-                <span>@{r.username}</span>
               </span>
               <span className="score">{r.tickets}</span>
             </li>

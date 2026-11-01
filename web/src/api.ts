@@ -52,12 +52,12 @@ export const api = {
   config: () => request<EventConfig>('/config'),
   leaderboard: () => request<Board>('/leaderboard'),
   me: () => request<Me>('/me', { authed: true }),
-  register: (body: { username: string; firstName: string; lastName: string; phone: string; kvkk: boolean }) =>
+  register: (body: { firstName: string; lastName: string; phone: string; kvkk: boolean }) =>
     request<Me>('/register', { method: 'POST', authed: true, body: JSON.stringify(body) }),
   redeem: (code: string) => request<RedeemResult>('/redeem', { method: 'POST', authed: true, body: JSON.stringify({ code }) }),
   staffCodes: () => request<RotatingCode[]>('/staff/codes', { authed: true }),
-  staffRedeem: (username: string, code: string) =>
-    request<RedeemResult>('/staff/redeem', { method: 'POST', authed: true, body: JSON.stringify({ username, code }) }),
+  staffRedeem: (email: string, code: string) =>
+    request<RedeemResult>('/staff/redeem', { method: 'POST', authed: true, body: JSON.stringify({ email, code }) }),
   stats: () => request<Stats>('/admin/stats', { authed: true }),
   exportCsv: (mode: 'ozet' | 'hak' | 'oturum') => request<Blob>(`/admin/export?mode=${mode}`, { authed: true, raw: true }),
 };

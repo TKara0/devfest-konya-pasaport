@@ -82,8 +82,8 @@ async function seed() {
   fresh();
 }
 
-const reg = (as, username, phone) =>
-  call('POST', '/register', { as, body: { username, firstName: username[0].toUpperCase() + username.slice(1), lastName: 'Yılmaz', phone, kvkk: true } });
+const reg = (as, firstName, phone) =>
+  call('POST', '/register', { as, body: { firstName, lastName: 'Yılmaz', phone, kvkk: true } });
 
 test('yapılandırma yokken anlaşılır hata', async () => {
   const r = await call('GET', '/config');
@@ -101,25 +101,38 @@ test('config istemciye kod sızdırmaz', async () => {
   assert.match(r.headers.get('cache-control'), /s-maxage/);
 });
 
-test('kimlik doğrulama ve kayıt', async () => {
+test('kimlik doğrulama ve kayıt (kimlik = Gmail)', async () => {
   assert.equal((await call('GET', '/me')).status, 401);
   const nr = await call('GET', '/me', { as: ALI });
   assert.equal(nr.status, 404);
   assert.equal(nr.json.error.code, 'NOT_REGISTERED');
 
-  const bad = await call('POST', '/register', { as: ALI, body: { username: 'ali', firstName: 'Ali', lastName: 'Y', phone: '05321112233' } });
+  const bad = await call('POST', '/register', { as: ALI, body: { firstName: 'Ali', lastName: 'Y', phone: '05321112233' } });
   assert.equal(bad.json.error.code, 'KVKK_REQUIRED');
 
-  const ok = await reg(ALI, 'ali', '0532 111 22 33');
+  const ok = await reg(ALI, 'Ali', '0532 111 22 33');
   assert.equal(ok.status, 201);
+  assert.equal(ok.json.email, 'ali@gmail.com');
   assert.equal(ok.json.phone, '05321112233');
   assert.equal(ok.json.tickets, 0);
 
-  assert.equal((await reg(ALI, 'ali2', '05321112299')).json.error.code, 'ALREADY_REGISTERED');
-  assert.equal((await reg(AYSE, 'ali', '05321112244')).json.error.code, 'USERNAME_TAKEN');
-  assert.equal((await reg(AYSE, 'ayse', '+90 532 111 22 33')).json.error.code, 'PHONE_TAKEN');
-  assert.equal((await reg(AYSE, 'ayse', '05321112244')).status, 201);
-  assert.equal((await reg(CAN, 'can', '05321112255')).status, 201);
+  assert.equal((await reg(ALI, 'Ali', '')).json.error.code, 'ALREADY_REGISTERED');
+  assert.equal((await reg(AYSE, 'Ayşe', '+90 532 111 22 33')).json.error.code, 'PHONE_TAKEN');
+  assert.equal((await reg(AYSE, 'Ayşe', '05321112244')).status, 201);
+
+  // Telefon isteğe bağlı
+  const can = await reg(CAN, 'Can', '');
+  assert.equal(can.status, 201);
+  assert.equal(can.json.phone, null);
+});
+
+test('öğrenci/kurum maili kabul edilmez', async () => {
+  const OGR = 'u-ogr|203301001@ogr.selcuk.edu.tr';
+  const me = await call('GET', '/me', { as: OGR });
+  assert.equal(me.status, 403);
+  assert.equal(me.json.error.code, 'GMAIL_REQUIRED');
+  const r = await reg(OGR, 'Öğrenci', '');
+  assert.equal(r.json.error.code, 'GMAIL_REQUIRED');
 });
 
 test('kayıtsız kullanıcı kod giremez', async () => {
@@ -206,8 +219,10 @@ test('sıralama: hak sayısı, eşitlikte önce ulaşan, soyad baş harfi', asyn
   assert.equal(r.status, 200);
   assert.equal(r.json.participants, 3);
   // Ali 3 hak (önce ulaştı), Ayşe 3 hak, Can 1 hak
-  assert.deepEqual(r.json.top.map((x) => [x.username, x.tickets]), [['ali', 3], ['ayse', 3], ['can', 1]]);
-  assert.equal(r.json.top[0].name, 'Ali Y.');
+  assert.deepEqual(r.json.top.map((x) => [x.name, x.tickets]), [['Ali Y.', 3], ['Ayşe Y.', 3], ['Can Y.', 1]]);
+  const me0 = await call('GET', '/me', { as: ALI });
+  assert.equal(r.json.top[0].id, me0.json.publicId);
+  assert.ok(!r.text.includes('u-ali'), 'uid sızmamalı');
   assert.ok(!r.text.includes('0532'), 'telefon sızmamalı');
   assert.ok(!r.text.includes('@gmail'), 'e-posta sızmamalı');
 
@@ -225,12 +240,12 @@ test('görevli uçları rol ister', async () => {
 });
 
 test('görevli katılımcı adına kod girer', async () => {
-  const r = await call('POST', '/staff/redeem', { as: STAFF, body: { username: '@Ayse', code: '111111' } });
+  const r = await call('POST', '/staff/redeem', { as: STAFF, body: { email: ' Ayse@Gmail.com ', code: '111111' } });
   assert.equal(r.status, 200);
-  assert.equal(r.json.user.username, 'ayse');
+  assert.equal(r.json.user.email, 'ayse@gmail.com');
   assert.equal(r.json.user.tickets, 4);
   assert.equal(db.store.get('redemptions/u-ayse_st-a').via, 'staff:gorevli@gmail.com');
-  const nf = await call('POST', '/staff/redeem', { as: STAFF, body: { username: 'kimse', code: '111111' } });
+  const nf = await call('POST', '/staff/redeem', { as: STAFF, body: { email: 'kimse@gmail.com', code: '111111' } });
   assert.equal(nf.json.error.code, 'USER_NOT_FOUND');
 });
 
@@ -245,9 +260,10 @@ test('yönetici istatistik ve çekiliş dosyaları', async () => {
   const hak = await call('GET', '/admin/export?mode=hak', { as: ADMIN });
   assert.match(hak.headers.get('content-type'), /text\/csv/);
   const hakRows = hak.text.replace(/^﻿/, '').split('\r\n');
-  assert.equal(hakRows[0], 'Zaman damgası,Ad Soyad,Telefon,E-posta,Kullanıcı adı,Hak no');
+  assert.equal(hakRows[0], 'Zaman damgası,Ad Soyad,Telefon,E-posta,Hak no');
   assert.equal(hakRows.length - 1, 8);
-  assert.equal(hakRows.filter((l) => l.includes(',ayse,')).length, 4);
+  assert.equal(hakRows.filter((l) => l.includes(',ayse@gmail.com,')).length, 4);
+  assert.ok(hakRows.some((l) => l.includes('Can Yılmaz,,can@gmail.com,')), 'telefonsuz kişi boş telefonla çıkar');
 
   const ot = await call('GET', '/admin/export?mode=oturum', { as: ADMIN });
   const otRows = ot.text.replace(/^﻿/, '').split('\r\n').slice(1);

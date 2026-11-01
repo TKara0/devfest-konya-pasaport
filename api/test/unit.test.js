@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { rotatingCode, matchRotating, currentRotating, GRACE_SECONDS } from '../src/codes.js';
-import { normalizePhone, validateRegistration, displayName } from '../src/validate.js';
+import { normalizePhone, validateRegistration, displayName, isAllowedEmail } from '../src/validate.js';
 
 const SECRET = 'test-secret-1234567890';
 const task = { id: 'linkedin', name: 'LinkedIn', type: 'rotating', rotateMinutes: 60 };
@@ -45,11 +45,22 @@ test('telefon normalizasyonu', () => {
   assert.equal(normalizePhone('123'), null);
 });
 
-test('kayıt doğrulaması', () => {
-  const ok = validateRegistration({ username: 'Talha.K', firstName: ' Talha ', lastName: 'Kara', phone: '05321234567', kvkk: true });
-  assert.deepEqual(ok, { username: 'talha.k', firstName: 'Talha', lastName: 'Kara', phone: '05321234567' });
+test('kayıt doğrulaması: telefon isteğe bağlı', () => {
+  const ok = validateRegistration({ firstName: ' Talha ', lastName: 'Kara', phone: '05321234567', kvkk: true });
+  assert.deepEqual(ok, { firstName: 'Talha', lastName: 'Kara', phone: '05321234567' });
+  assert.equal(validateRegistration({ firstName: 'A', lastName: 'B', phone: '  ', kvkk: true }).phone, null);
+  assert.equal(validateRegistration({ firstName: 'A', lastName: 'B', kvkk: true }).phone, null);
+  assert.throws(() => validateRegistration({ firstName: 'A', lastName: 'B', phone: '123', kvkk: true }), /boş bırak/);
   assert.throws(() => validateRegistration({ ...ok, kvkk: false }), /aydınlatma/);
-  assert.throws(() => validateRegistration({ ...ok, kvkk: true, username: 'a' }), /Kullanıcı adı/);
+  assert.throws(() => validateRegistration({ firstName: '', lastName: 'B', kvkk: true }), /Ad ve soyad/);
+});
+
+test('yalnızca kişisel Gmail', () => {
+  assert.equal(isAllowedEmail('ali@gmail.com'), true);
+  assert.equal(isAllowedEmail('Ali@GoogleMail.com'), true);
+  assert.equal(isAllowedEmail('203301001@ogr.selcuk.edu.tr'), false);
+  assert.equal(isAllowedEmail('ali@hotmail.com'), false);
+  assert.equal(isAllowedEmail(''), false);
 });
 
 test('sıralamada soyadın baş harfi', () => {

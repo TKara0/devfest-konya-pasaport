@@ -62,7 +62,7 @@ export function createApp() {
   });
 
   api.post('/staff/redeem', requireAuth, requireRole('staff', 'admin'), async (req, res) => {
-    res.json(await svc.staffRedeem(req.user.email, req.body?.username, req.body?.code));
+    res.json(await svc.staffRedeem(req.user.email, req.body?.email, req.body?.code));
   });
 
   api.get('/admin/stats', requireAuth, requireRole('admin'), async (_req, res) => {

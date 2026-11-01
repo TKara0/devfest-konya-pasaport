@@ -1,8 +1,12 @@
 import { FieldValue, AggregateField } from 'firebase-admin/firestore';
 import { db } from './firebase.js';
 import { getConfig, roleOf } from './config.js';
-import { ApiError, validateRegistration, displayName } from './validate.js';
+import { createHash } from 'node:crypto';
+import { ApiError, validateRegistration, displayName, isAllowedEmail } from './validate.js';
 import { CODE_RE, matchRotating, currentRotating } from './codes.js';
+
+/** Sıralamada "sen" vurgusu için uid'den türetilen, geri çevrilemeyen kısa kimlik. */
+const publicId = (uid) => createHash('sha256').update(String(uid)).digest('hex').slice(0, 12);
 
 const SECRET = () => {
   const s = process.env.CODE_SECRET;
@@ -22,11 +26,11 @@ const slotKey = (slot) => String(slot).replace(/\D/g, '');
 function publicUser(id, u, extra = {}) {
   return {
     uid: id,
-    username: u.username,
+    publicId: publicId(id),
     firstName: u.firstName,
     lastName: u.lastName,
     email: u.email,
-    phone: u.phone,
+    phone: u.phone || null,
     tickets: u.tickets || 0,
     progress: u.progress || {},
     done: u.done || [],
@@ -35,17 +39,25 @@ function publicUser(id, u, extra = {}) {
   };
 }
 
+export function assertGmail(token) {
+  if (!token.email || !isAllowedEmail(token.email))
+    throw new ApiError(403, 'GMAIL_REQUIRED', 'Kişisel Gmail hesabınla giriş yapmalısın. Öğrenci ya da kurum e-postası kabul edilmiyor.');
+  if (token.email_verified === false) throw new ApiError(403, 'EMAIL_NOT_VERIFIED', 'Gmail adresin doğrulanmamış görünüyor.');
+}
+
 export async function register(token, body) {
+  assertGmail(token);
   const data = validateRegistration(body);
   const uid = token.uid;
+  const email = token.email.toLowerCase();
   const userRef = db.doc(`users/${uid}`);
-  const nameRef = db.doc(`usernames/${data.username}`);
-  const phoneRef = db.doc(`phones/${data.phone}`);
+  const emailRef = db.doc(`emails/${email}`);
+  const phoneRef = data.phone ? db.doc(`phones/${data.phone}`) : null;
   const now = Date.now();
 
   const user = {
     ...data,
-    email: (token.email || '').toLowerCase(),
+    email,
     tickets: 0,
     progress: {},
     done: [],
@@ -55,13 +67,12 @@ export async function register(token, body) {
   };
 
   await db.runTransaction(async (tx) => {
-    const [u, n, p] = await Promise.all([tx.get(userRef), tx.get(nameRef), tx.get(phoneRef)]);
-    if (u.exists) throw new ApiError(409, 'ALREADY_REGISTERED', 'Bu Google hesabıyla zaten bir pasaport var.');
-    if (n.exists) throw new ApiError(409, 'USERNAME_TAKEN', 'Bu kullanıcı adı alınmış, başka bir tane dene.');
-    if (p.exists) throw new ApiError(409, 'PHONE_TAKEN', 'Bu telefon numarasıyla zaten kayıt olunmuş. O hesabın Gmail adresiyle giriş yap.');
+    const [u, e, p] = await Promise.all([tx.get(userRef), tx.get(emailRef), phoneRef ? tx.get(phoneRef) : null]);
+    if (u.exists || e.exists) throw new ApiError(409, 'ALREADY_REGISTERED', 'Bu Gmail adresiyle zaten bir pasaport var. Giriş yap sekmesinden devam et.');
+    if (p?.exists) throw new ApiError(409, 'PHONE_TAKEN', 'Bu telefon numarasıyla başka bir Gmail hesabı kayıtlı. O hesapla giriş yap ya da telefonu boş bırak.');
     tx.create(userRef, user);
-    tx.create(nameRef, { uid });
-    tx.create(phoneRef, { uid });
+    tx.create(emailRef, { uid });
+    if (phoneRef) tx.create(phoneRef, { uid });
   });
 
   return publicUser(uid, user, { rank: null, role: await roleOf(user.email) });
@@ -69,7 +80,10 @@ export async function register(token, body) {
 
 export async function getMe(token) {
   const snap = await db.doc(`users/${token.uid}`).get();
-  if (!snap.exists) throw new ApiError(404, 'NOT_REGISTERED', 'Henüz pasaportun yok. Kayıt formunu doldur.');
+  if (!snap.exists) {
+    assertGmail(token);
+    throw new ApiError(404, 'NOT_REGISTERED', 'Bu Gmail adresiyle kayıtlı bir pasaport yok. Kayıt ol sekmesinden bilgilerini gir.');
+  }
   const u = snap.data();
   const higher = await db.collection('users').where('tickets', '>', u.tickets || 0).count().get();
   return publicUser(snap.id, u, {
@@ -199,10 +213,10 @@ export async function redeem(uid, rawCode, via = 'self') {
   };
 }
 
-export async function staffRedeem(staffEmail, username, code) {
-  const u = String(username ?? '').trim().toLowerCase().replace(/^@/, '');
-  const snap = await db.doc(`usernames/${u}`).get();
-  if (!snap.exists) throw new ApiError(404, 'USER_NOT_FOUND', `@${u} adında bir katılımcı yok.`);
+export async function staffRedeem(staffEmail, email, code) {
+  const e = String(email ?? '').trim().toLowerCase();
+  const snap = e.includes('@') ? await db.doc(`emails/${e}`).get() : null;
+  if (!snap?.exists) throw new ApiError(404, 'USER_NOT_FOUND', `${e || 'Bu adres'} ile kayıtlı bir katılımcı yok.`);
   return redeem(snap.data().uid, code, `staff:${staffEmail}`);
 }
 
@@ -220,9 +234,8 @@ export async function leaderboard() {
     db.collection('users').count().get(),
   ]);
   const rows = top.docs
-    .map((d) => d.data())
-    .filter((u) => (u.tickets || 0) > 0)
-    .map((u, i) => ({ rank: i + 1, username: u.username, name: displayName(u), tickets: u.tickets }));
+    .filter((d) => (d.data().tickets || 0) > 0)
+    .map((d, i) => ({ rank: i + 1, id: publicId(d.id), name: displayName(d.data()), tickets: d.data().tickets }));
   boardCache = { at: Date.now(), value: { updatedAt: Date.now(), participants: count.data().count, top: rows } };
   return boardCache.value;
 }
@@ -270,26 +283,26 @@ export async function exportCsv(mode = 'ozet') {
   const snap = await db.collection('users').orderBy('tickets', 'desc').get();
   const users = snap.docs.map((d) => d.data());
   const stamp = (ms) => new Date(ms).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
-  const base = (u) => [stamp(u.createdAt), `${u.firstName} ${u.lastName}`, u.phone, u.email];
+  const base = (u) => [stamp(u.createdAt), `${u.firstName} ${u.lastName}`, u.phone || '', u.email];
 
   let header = ['Zaman damgası', 'Ad Soyad', 'Telefon', 'E-posta'];
   const lines = [];
 
   if (mode === 'hak') {
-    header = [...header, 'Kullanıcı adı', 'Hak no'];
-    for (const u of users) for (let i = 1; i <= (u.tickets || 0); i++) lines.push([...base(u), u.username, i]);
+    header = [...header, 'Hak no'];
+    for (const u of users) for (let i = 1; i <= (u.tickets || 0); i++) lines.push([...base(u), i]);
   } else if (mode === 'oturum') {
     const sessionTask = cfg.tasks.find((t) => t.type === 'session');
     const byId = Object.fromEntries(cfg.sessions.map((s) => [s.id, s]));
-    header = [...header, 'Kullanıcı adı', 'Oturum'];
+    header = [...header, 'Oturum'];
     for (const u of users) {
-      for (const sid of Object.values(u.sessions || {})) lines.push([...base(u), u.username, byId[sid]?.title || sid]);
+      for (const sid of Object.values(u.sessions || {})) lines.push([...base(u), byId[sid]?.title || sid]);
     }
     if (!sessionTask) lines.length = 0;
   } else {
-    header = [...header, 'Kullanıcı adı', 'Çekiliş hakkı', ...cfg.tasks.map((t) => t.name)];
+    header = [...header, 'Çekiliş hakkı', ...cfg.tasks.map((t) => t.name)];
     for (const u of users) {
-      lines.push([...base(u), u.username, u.tickets || 0, ...cfg.tasks.map((t) => (u.progress || {})[t.id] || 0)]);
+      lines.push([...base(u), u.tickets || 0, ...cfg.tasks.map((t) => (u.progress || {})[t.id] || 0)]);
     }
   }
 

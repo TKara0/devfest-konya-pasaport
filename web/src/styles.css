@@ -328,6 +328,39 @@ section > .card + .card, .stat-row + .card { margin-top: 20px; }
 .err-text { color: var(--red); font-size: 13.5px; font-weight: 600; margin: 10px 0 0; }
 .err-text.light { color: var(--gold-100); }
 
+/* Giriş / kayıt sekmeleri */
+.auth-card { padding: 0 !important; overflow: hidden; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+.tabs button {
+  border: 0; background: var(--paper-2); padding: 14px 12px; font-weight: 800; font-size: 15px; cursor: pointer;
+  color: var(--muted); border-bottom: 3px solid transparent;
+}
+.tabs button[aria-selected='true'] { background: var(--paper); color: var(--red); border-bottom-color: var(--red); }
+.tabs button:not([aria-selected='true']):hover { color: var(--ink); }
+.panel { padding: 20px 24px 24px; margin: 0; }
+.panel.form { margin-top: 0; }
+.notice { margin: 16px 24px 0; padding: 10px 12px; border-radius: 8px; background: #fbeee4; border: 1px solid rgba(127, 0, 17, 0.3); color: var(--red-700); font-size: 14px; font-weight: 600; }
+.hint-line { font-size: 12.5px; color: var(--muted); margin: 14px 0 0; }
+.warn-linked { background: #fbeee4; color: var(--red-700); justify-content: space-between; flex-wrap: wrap; margin-top: 14px; }
+.btn-link.inline { min-height: 0; padding: 0; border: 0; cursor: pointer; color: var(--red); font-weight: 800; }
+.gmail-slot {
+  display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 8px 12px; border-radius: 8px;
+  border: 1px dashed var(--line-2); background: var(--paper-2); color: var(--muted); font-size: 13.5px;
+}
+.gmail-slot svg { width: 18px; height: 18px; flex: none; }
+.field input.readonly { background: var(--paper-2); color: var(--ink-2); font-weight: 600; }
+.optional { font-weight: 600; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-left: 6px; }
+
+/* Üst bardaki giriş/çıkış */
+.logout-btn {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-2); background: transparent; color: var(--red);
+  border-radius: 999px; padding: 7px 12px; font-weight: 700; font-size: 13.5px; cursor: pointer;
+}
+.logout-btn:hover { background: var(--paper-2); }
+.logout-btn svg { width: 17px; height: 17px; }
+.pending-mail { font-size: 13px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.auth-links { gap: 8px; }
+
 /* ---------- Alt bant ---------- */
 .band { height: clamp(110px, 22vw, 240px); margin-top: 8px; background: url('./assets/band.webp') center bottom / cover no-repeat; }
 
@@ -399,6 +432,14 @@ section > .card + .card, .stat-row + .card { margin-top: 20px; }
   .slot time { padding-top: 0; }
   .row2 { grid-template-columns: 1fr; }
   .big { font-size: 54px; }
+}
+@media (max-width: 520px) {
+  .logout-btn { padding: 8px; }
+  .logout-btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .pending-mail { display: none; }
+  .panel { padding: 18px 16px 20px; }
+  .notice { margin: 14px 16px 0; }
+  .auth-links .btn-sm { padding: 0 10px; }
 }
 @media (max-width: 360px) {
   .otp .cell { width: 38px; height: 48px; font-size: 20px; }

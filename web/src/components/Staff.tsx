@@ -95,21 +95,21 @@ export function Staff() {
 
 /** Telefonu kapanan ya da kod giremeyen katılımcı için görevlinin kendi ekranından kod girmesi. */
 function StaffRedeem() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState<{ ok: boolean; msg: string } | null>(null);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!username.trim() || code.length !== 6) {
-      setRes({ ok: false, msg: 'Kullanıcı adını ve 6 haneli kodu gir.' });
+    if (!email.includes('@') || code.length !== 6) {
+      setRes({ ok: false, msg: 'Katılımcının Gmail adresini ve 6 haneli kodu gir.' });
       return;
     }
     setBusy(true);
     try {
-      const r = await api.staffRedeem(username.trim(), code);
-      setRes({ ok: true, msg: `@${r.user.username}: ${r.message}` });
+      const r = await api.staffRedeem(email.trim(), code);
+      setRes({ ok: true, msg: `${r.user.firstName} ${r.user.lastName}: ${r.message}` });
       setCode('');
     } catch (err) {
       setRes({ ok: false, msg: err instanceof ApiError ? err.message : 'İşlem tamamlanamadı.' });
@@ -124,8 +124,8 @@ function StaffRedeem() {
       <p className="sub small">Telefonu kapanan ya da internete bağlanamayan katılımcılar için. İşlem senin adınla kaydedilir.</p>
       <form className="form" onSubmit={submit}>
         <div className="field">
-          <label htmlFor="staff-user">Kullanıcı adı</label>
-          <input id="staff-user" autoCapitalize="none" placeholder="@kullanici" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <label htmlFor="staff-email">Katılımcının Gmail adresi</label>
+          <input id="staff-email" type="email" inputMode="email" autoCapitalize="none" placeholder="ornek@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="field">
           <span className="label">Kod</span>

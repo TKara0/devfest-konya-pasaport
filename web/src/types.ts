@@ -36,11 +36,12 @@ export type Role = 'staff' | 'admin' | null;
 
 export interface Me {
   uid: string;
-  username: string;
+  /** sıralamada kendini bulmak için */
+  publicId: string;
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone: string | null;
   tickets: number;
   progress: Record<string, number>;
   done: string[];
@@ -52,7 +53,7 @@ export interface Me {
 
 export interface BoardRow {
   rank: number;
-  username: string;
+  id: string;
   name: string;
   tickets: number;
 }

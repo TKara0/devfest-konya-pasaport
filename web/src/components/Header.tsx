@@ -21,9 +21,13 @@ interface Props {
   view?: View;
   onNav?: (v: View) => void;
   onLogout?: () => void;
+  /** Giriş yapmamış ziyaretçi için üstteki Giriş yap / Kayıt ol düğmeleri */
+  onAuth?: (tab: 'giris' | 'kayit') => void;
+  /** Google ile girmiş ama henüz kaydı olmayan kullanıcı */
+  pendingEmail?: string | null;
 }
 
-export function Header({ me, view, onNav, onLogout }: Props) {
+export function Header({ me, view, onNav, onLogout, onAuth, pendingEmail }: Props) {
   const [menu, setMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const allowed = allowedViews(me);
@@ -74,7 +78,6 @@ export function Header({ me, view, onNav, onLogout }: Props) {
                   <b>
                     {me.firstName} {me.lastName}
                   </b>
-                  <span>@{me.username}</span>
                   <span>{me.email}</span>
                 </div>
                 <button type="button" role="menuitem" onClick={onLogout}>
@@ -83,6 +86,31 @@ export function Header({ me, view, onNav, onLogout }: Props) {
                 </button>
               </div>
             )}
+            <button type="button" className="logout-btn" onClick={onLogout} title="Çıkış yap">
+              <Icon name="logout" />
+              <span>Çıkış yap</span>
+            </button>
+          </div>
+        )}
+
+        {!me && pendingEmail && (
+          <div className="me">
+            <span className="pending-mail">{pendingEmail}</span>
+            <button type="button" className="logout-btn" onClick={onLogout} title="Çıkış yap">
+              <Icon name="logout" />
+              <span>Çıkış yap</span>
+            </button>
+          </div>
+        )}
+
+        {!me && !pendingEmail && onAuth && (
+          <div className="me auth-links">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => onAuth('giris')}>
+              Giriş yap
+            </button>
+            <button type="button" className="btn btn-red btn-sm" onClick={() => onAuth('kayit')}>
+              Kayıt ol
+            </button>
           </div>
         )}
       </div>

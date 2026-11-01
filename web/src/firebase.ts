@@ -52,3 +52,8 @@ export function isInAppBrowser(): boolean {
   const ua = navigator.userAgent || '';
   return /Instagram|FBAN|FBAV|FB_IAB|LinkedInApp|Line\/|MicroMessenger|TikTok|musical_ly|Snapchat|Twitter/i.test(ua);
 }
+
+/** Kimlik kişisel Gmail adresidir; öğrenci/kurum hesapları kabul edilmez (API de ayrıca kontrol eder). */
+export function isGmail(email: string | null | undefined): boolean {
+  return /@(gmail|googlemail)\.com$/i.test(email || '');
+}

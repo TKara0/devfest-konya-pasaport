@@ -6,7 +6,19 @@ export class ApiError extends Error {
   }
 }
 
-export const USERNAME_RE = /^[a-z0-9._]{3,20}$/;
+/**
+ * Kimlik kişisel Gmail adresidir. Öğrenci/kurum (Google Workspace) hesapları kabul edilmez.
+ * Gerekirse ALLOWED_EMAIL_DOMAINS ortam değişkeniyle değiştirilebilir.
+ */
+const ALLOWED_DOMAINS = (process.env.ALLOWED_EMAIL_DOMAINS || 'gmail.com,googlemail.com')
+  .split(',')
+  .map((d) => d.trim().toLowerCase())
+  .filter(Boolean);
+
+export function isAllowedEmail(email) {
+  const domain = String(email || '').toLowerCase().split('@')[1];
+  return !!domain && ALLOWED_DOMAINS.includes(domain);
+}
 
 /** 5xxxxxxxxx, 05xxxxxxxxx, 905xxxxxxxxx, +90 5xx ... → 05xxxxxxxxx */
 export function normalizePhone(raw) {
@@ -21,19 +33,18 @@ function cleanName(raw) {
   return s.length >= 1 && s.length <= 40 ? s : null;
 }
 
+/** Kayıt: ad ve soyad zorunlu, telefon isteğe bağlı. Gmail adresi Google girişinden gelir. */
 export function validateRegistration(body) {
-  const username = String(body?.username ?? '').trim().toLowerCase();
   const firstName = cleanName(body?.firstName);
   const lastName = cleanName(body?.lastName);
-  const phone = normalizePhone(body?.phone);
+  const rawPhone = String(body?.phone ?? '').trim();
+  const phone = rawPhone ? normalizePhone(rawPhone) : null;
 
-  if (!USERNAME_RE.test(username))
-    throw new ApiError(400, 'INVALID_USERNAME', 'Kullanıcı adı 3-20 karakter olmalı; küçük harf, rakam, nokta ve alt çizgi kullanabilirsin.');
   if (!firstName || !lastName) throw new ApiError(400, 'INVALID_NAME', 'Ad ve soyad gerekli (en fazla 40 karakter).');
-  if (!phone) throw new ApiError(400, 'INVALID_PHONE', 'Telefonu 05xx xxx xx xx biçiminde yaz.');
+  if (rawPhone && !phone) throw new ApiError(400, 'INVALID_PHONE', 'Telefonu 05xx xxx xx xx biçiminde yaz ya da boş bırak.');
   if (body?.kvkk !== true) throw new ApiError(400, 'KVKK_REQUIRED', 'Devam etmek için aydınlatma metnini onaylaman gerekiyor.');
 
-  return { username, firstName, lastName, phone };
+  return { firstName, lastName, phone };
 }
 
 /** "Zeynep Ak" → "Zeynep A." — sıralamada tam soyad gösterilmez. */

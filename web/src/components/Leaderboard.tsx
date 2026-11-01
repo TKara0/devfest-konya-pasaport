@@ -10,7 +10,6 @@ function Row({ r, you }: { r: BoardRow; you: boolean }) {
           {r.name}
           {you && <span className="you-tag">SEN</span>}
         </b>
-        <span>@{r.username}</span>
       </span>
       <span className="score">
         <Icon name="ticket" />
@@ -65,7 +64,7 @@ export function MiniBoard({ board, me, error, onMore }: { board: Board | null; m
       ) : (
         <ol className="lb">
           {board.top.slice(0, 5).map((r) => (
-            <Row key={r.username} r={r} you={r.username === me.username} />
+            <Row key={r.id} r={r} you={r.id === me.publicId} />
           ))}
         </ol>
       )}
@@ -78,7 +77,7 @@ export function MiniBoard({ board, me, error, onMore }: { board: Board | null; m
 
 export function FullBoard({ board, me, error }: { board: Board | null; me: Me; error: boolean }) {
   const top = board?.top ?? [];
-  const inTop = top.some((r) => r.username === me.username);
+  const inTop = top.some((r) => r.id === me.publicId);
   return (
     <section>
       <div className="section-head page-head">
@@ -97,7 +96,7 @@ export function FullBoard({ board, me, error }: { board: Board | null; me: Me; e
               <div className="n">{i + 1}</div>
               <b>
                 {top[i].name}
-                {top[i].username === me.username ? ' (sen)' : ''}
+                {top[i].id === me.publicId ? ' (sen)' : ''}
               </b>
               <span>{top[i].tickets} hak</span>
             </div>
@@ -113,7 +112,7 @@ export function FullBoard({ board, me, error }: { board: Board | null; me: Me; e
         ) : (
           <ol className="lb">
             {(top.length >= 3 ? top.slice(3) : top).map((r) => (
-              <Row key={r.username} r={r} you={r.username === me.username} />
+              <Row key={r.id} r={r} you={r.id === me.publicId} />
             ))}
           </ol>
         )}

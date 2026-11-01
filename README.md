@@ -3,7 +3,8 @@
 Katılımcıların stant, oturum ve görev kodlarını girip çekiliş hakkı topladığı sistem.
 
 - **Ön yüz:** React + Vite + TypeScript, Firebase Hosting
-- **Giriş:** Firebase Authentication (Google). Şifre yok, çıkış yapan kişi aynı Gmail ile girince ilerlemesi geri gelir.
+- **Giriş:** Firebase Authentication (Google). Kimlik kişisel **Gmail** adresidir; öğrenci/kurum e-postası kabul edilmez. Şifre yok, çıkış yapan kişi aynı Gmail ile girince ilerlemesi geri gelir.
+- **Kayıt:** ad, soyad, Gmail (Google'dan gelir), telefon (isteğe bağlı).
 - **API:** Node.js + Express, Cloud Run (`europe-west1`)
 - **Veritabanı:** Firestore. Tarayıcı Firestore'a hiç doğrudan erişmez, her şey API üzerinden yapılır.
 
@@ -22,7 +23,8 @@ firebase.json, firestore.rules, firestore.indexes.json
 | Aynı saatte iki oturum olmaz | `attendance/{uid}_{saat}` belgesi; doluysa “Aynı anda 2 oturuma katılamazsınız” |
 | Saatlik dönen kodlar | `HMAC(CODE_SECRET, görev:saat)`, veritabanına yazılmaz. Önceki saatin kodu 3 dk daha geçer, sonra “süresi doldu” |
 | Kaba kuvvet | 10 dakikada 8 yanlış kod → 5 dakika kilit |
-| Tek kişi tek hesap | Kullanıcı adı ve telefon tekil (`usernames/`, `phones/`) |
+| Tek kişi tek hesap | Gmail tekil (`emails/`); telefon girildiyse o da tekil (`phones/`) |
+| Yalnızca kişisel Gmail | `@gmail.com` / `@googlemail.com` dışındaki hesaplar hem ön yüzde hem API'de reddedilir (`ALLOWED_EMAIL_DOMAINS` ile değiştirilebilir) |
 | Sıralama yükü | `/api/leaderboard` 10 sn bellek + 15 sn CDN önbelleği |
 
 ## Görev türleri (`api/seed/event.json`)
@@ -86,7 +88,7 @@ Etkinlikten sonra `--min-instances 0` yapın.
 
 `event.json` içindeki `roles.admins` ve `roles.staff` listelerine Gmail adreslerini yazıp `npm run seed` çalıştırın.
 
-- **Görevli:** dönen kodları görür, katılımcı adına kod girebilir (telefonu kapanan vb. için).
+- **Görevli:** dönen kodları görür, katılımcının Gmail adresiyle onun adına kod girebilir (telefonu kapanan vb. için).
 - **Yönetici:** görevli + canlı istatistik + çekiliş CSV'leri + büyük ekran.
 
 ## Ekranlar
@@ -102,7 +104,7 @@ Etkinlikten sonra `--min-instances 0` yapın.
 
 ## Çekiliş dosyaları
 
-Yönetim ekranından indirilen CSV'lerin ilk dört sütunu çekiliş uygulamasının beklediği sırada: **Zaman damgası, Ad Soyad, Telefon, E-posta**.
+Yönetim ekranından indirilen CSV'lerin ilk dört sütunu çekiliş uygulamasının beklediği sırada: **Zaman damgası, Ad Soyad, Telefon, E-posta**. Telefon isteğe bağlı olduğu için boş olabilir; çekiliş uygulaması kişiyi telefonla tanıyorsa e-postayı kullanacak şekilde güncellenmeli.
 
 - `ozet`: kişi başı tek satır + görev bazında ilerleme
 - `hak`: her çekiliş hakkı için bir satır (ağırlıklı görev çekilişi)
