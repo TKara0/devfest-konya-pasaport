@@ -13,6 +13,8 @@ import { Sessions } from './components/Sessions';
 import { Staff } from './components/Staff';
 import { Admin } from './components/Admin';
 import { BigScreen } from './components/BigScreen';
+import { RaffleStage } from './components/RaffleStage';
+import { Wins } from './components/Wins';
 
 type Phase = 'loading' | 'signedOut' | 'needsProfile' | 'ready' | 'error';
 const VIEWS: View[] = ['pasaport', 'oturumlar', 'siralama', 'gorevli', 'yonetim'];
@@ -114,6 +116,24 @@ function Main({ hash }: { hash: string }) {
     });
   }, [loadMe]);
 
+  /* Telefon uyku/arka plandan dönünce kazandı mı diye bakmak için bilgileri tazele (en fazla 30 sn'de bir) */
+  const lastRefresh = useRef(Date.now());
+  useEffect(() => {
+    if (phase !== 'ready') return;
+    const on = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - lastRefresh.current < 30_000) return;
+      lastRefresh.current = Date.now();
+      void api.me().then(setMe).catch(() => undefined);
+    };
+    document.addEventListener('visibilitychange', on);
+    return () => document.removeEventListener('visibilitychange', on);
+  }, [phase]);
+
+  /* #cekilis yalnızca yönetici içindir; değilse pasaporta yönlendir */
+  useEffect(() => {
+    if (hash === 'cekilis' && phase === 'ready' && me && me.role !== 'admin') window.location.hash = '';
+  }, [hash, phase, me]);
+
   async function finishLink(email: string) {
     try {
       await completeLoginLink(email);
@@ -198,18 +218,24 @@ function Main({ hash }: { hash: string }) {
     else if (view === 'yonetim') body = <Admin />;
     else
       body = (
-        <div className="grid">
-          <div className="col">
-            <CodeEntry firstName={me.firstName} onRedeemed={onRedeemed} />
-            <TaskGrid tasks={config.tasks} sessions={config.sessions} me={me} justDone={justDone} />
+        <>
+          {me.wins && me.wins.length > 0 && <Wins wins={me.wins} />}
+          <div className="grid">
+            <div className="col">
+              <CodeEntry firstName={me.firstName} onRedeemed={onRedeemed} />
+              <TaskGrid tasks={config.tasks} sessions={config.sessions} me={me} justDone={justDone} />
+            </div>
+            <div className="col">
+              <TicketCard me={me} tasks={config.tasks} />
+              <MiniBoard board={board} me={me} error={boardErr} onMore={() => nav('siralama')} />
+            </div>
           </div>
-          <div className="col">
-            <TicketCard me={me} tasks={config.tasks} />
-            <MiniBoard board={board} me={me} error={boardErr} onMore={() => nav('siralama')} />
-          </div>
-        </div>
+        </>
       );
   }
+
+  // Projektör sahnesi: başlık/gezinme olmadan tam ekran (yalnızca giriş yapmış yönetici)
+  if (hash === 'cekilis' && phase === 'ready' && me?.role === 'admin') return <RaffleStage onExit={() => nav('yonetim')} />;
 
   return (
     <>

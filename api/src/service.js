@@ -4,6 +4,7 @@ import { getConfig, roleOf } from './config.js';
 import { createHash } from 'node:crypto';
 import { ApiError, validateRegistration, displayName, isAllowedEmail } from './validate.js';
 import { CODE_RE, matchRotating, currentRotating } from './codes.js';
+import { winsOf } from './raffle.js';
 
 /** Sıralamada "sen" vurgusu için uid'den türetilen, geri çevrilemeyen kısa kimlik. */
 const publicId = (uid) => createHash('sha256').update(String(uid)).digest('hex').slice(0, 12);
@@ -35,6 +36,7 @@ function publicUser(id, u, extra = {}) {
     progress: u.progress || {},
     done: u.done || [],
     sessions: u.sessions || {},
+    wins: winsOf(u),
     ...extra,
   };
 }
@@ -298,7 +300,7 @@ export async function stats() {
   };
 }
 
-const csvCell = (v) => {
+export const csvCell = (v) => {
   const s = String(v ?? '');
   return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };

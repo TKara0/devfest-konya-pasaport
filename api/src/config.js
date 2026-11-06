@@ -8,7 +8,7 @@ let cfgCache = { at: 0, value: null };
 const roleCache = new Map();
 
 /**
- * Etkinlik yapılandırması (görevler, adımlar, oturumlar). Kodlar burada YOK;
+ * Etkinlik yapılandırması (görevler, adımlar, oturumlar, çekiliş kategorileri). Kodlar burada YOK;
  * onlar ayrı `codes` koleksiyonunda durur. `npm run seed` ile yazılır.
  */
 export async function getConfig() {
@@ -21,7 +21,7 @@ export async function getConfig() {
     ...t,
     total: t.type === 'session' ? slots.length : t.type === 'rotating' ? 1 : (t.steps || []).length,
   }));
-  cfgCache = { at: Date.now(), value: { event: raw.event || {}, tasks, sessions: raw.sessions || [], slots } };
+  cfgCache = { at: Date.now(), value: { event: raw.event || {}, tasks, sessions: raw.sessions || [], slots, raffles: raw.raffles || [] } };
   return cfgCache.value;
 }
 

@@ -51,7 +51,7 @@ cfg.sessions.forEach((s, i) => {
   s.title = titles[i] || s.title;
   s.speaker = 'Örnek konuşmacı';
 });
-await db.doc('config/event').set({ event: cfg.event, tasks: cfg.tasks, sessions: cfg.sessions });
+await db.doc('config/event').set({ event: cfg.event, tasks: cfg.tasks, sessions: cfg.sessions, raffles: cfg.raffles });
 
 // Akılda kalsın diye sıralı kodlar: stantlar 1xxxxx, oyunlar 2xxxxx, oturumlar 3xxxxx
 const codeOf = {};
@@ -102,6 +102,13 @@ for (const [i, [f, l, n]] of people.entries()) {
   for (let k = 0; k < n; k++) await svc.redeem(uid, codeOf[order[k]]);
 }
 
+// Oturum çekilişi de denenebilsin: örnek katılımcılar farklı sayıda oturuma katılmış olsun
+// (her saat diliminden yalnızca biri, aynı anda iki oturum çakışması olmasın)
+const sessionPerSlot = ['s01', 's02', 's04', 's06', 's08', 's10'];
+for (let i = 0; i < people.length; i++) {
+  for (const sid of sessionPerSlot.slice(0, i % (sessionPerSlot.length + 1))) await svc.redeem(`demo-ornek-${i}`, codeOf[sid]);
+}
+
 /* ---------- Başlat ---------- */
 const port = Number(process.env.PORT) || 8080;
 createApp().listen(port, () => {
@@ -110,5 +117,6 @@ createApp().listen(port, () => {
   console.log('  Test kodları:');
   for (const [task, label, code] of rows) console.log(`    ${code}  ${task.padEnd(18)} ${label}`);
   console.log(`\n  Saatlik kodlar (${rot.map((t) => t.name).join(', ')}) için Görevli hesabıyla giriş yapıp Görevli sekmesine bak.`);
-  console.log('  Çakışma denemesi: Ayşe 10:00’da Salon B’de (300003); 300002 girersen "Aynı anda 2 oturum" hatası alırsın.\n');
+  console.log('  Çakışma denemesi: Ayşe 10:00’da Salon B’de (300003); 300002 girersen "Aynı anda 2 oturum" hatası alırsın.');
+  console.log('  Çekiliş: yonetici.demo@gmail.com ile giriş yap → Yönetim sekmesi ya da tam ekran sahne http://localhost:5173/#cekilis\n');
 });

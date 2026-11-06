@@ -3,6 +3,7 @@ import { auth } from './firebase.js';
 import { publicConfig, roleOf } from './config.js';
 import { ApiError } from './validate.js';
 import * as svc from './service.js';
+import * as draws from './draws.js';
 
 /** Authorization: Bearer <Firebase ID token> doğrulaması. */
 async function requireAuth(req, _res, next) {
@@ -82,6 +83,39 @@ export function createApp() {
     res.set('Content-Type', 'text/csv; charset=utf-8');
     res.set('Content-Disposition', `attachment; filename="devfest-pasaport-${mode}.csv"`);
     res.send(await svc.exportCsv(mode));
+  });
+
+  /* Çekiliş (yalnızca yönetici, hiçbiri önbelleğe alınmaz) */
+  const raffleAdmin = [requireAuth, requireRole('admin'), (_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); }];
+
+  api.get('/admin/raffles', ...raffleAdmin, async (_req, res) => {
+    res.json(await draws.listRaffles());
+  });
+
+  api.get('/admin/raffles/:id/names', ...raffleAdmin, async (req, res) => {
+    res.json({ names: await draws.raffleNames(req.params.id) });
+  });
+
+  api.post('/admin/draws', ...raffleAdmin, async (req, res) => {
+    res.status(201).json(await draws.createDraw(req.user.email, req.body));
+  });
+
+  api.get('/admin/draws', ...raffleAdmin, async (_req, res) => {
+    res.json(await draws.listDraws());
+  });
+
+  api.get('/admin/draws/export', ...raffleAdmin, async (_req, res) => {
+    res.set('Content-Type', 'text/csv; charset=utf-8');
+    res.set('Content-Disposition', 'attachment; filename="devfest-cekilis-kazananlar.csv"');
+    res.send(await draws.exportDraws());
+  });
+
+  api.post('/admin/draws/:id/results/:index', ...raffleAdmin, async (req, res) => {
+    res.json(await draws.setResultStatus(req.params.id, req.params.index, req.body?.status));
+  });
+
+  api.post('/admin/draws/:id/cancel', ...raffleAdmin, async (req, res) => {
+    res.json(await draws.cancelDraw(req.user.email, req.params.id));
   });
 
   app.use('/api', api);

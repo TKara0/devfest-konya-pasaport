@@ -1,5 +1,5 @@
 import { auth } from './firebase';
-import type { Board, EventConfig, Me, RedeemResult, RotatingCode, Stats } from './types';
+import type { Board, Draw, DrawCreated, EventConfig, Me, Raffle, RedeemResult, ResultUpdated, RotatingCode, Stats } from './types';
 
 export class ApiError extends Error {
   status: number;
@@ -67,4 +67,16 @@ export const api = {
     request<RedeemResult>('/staff/redeem', { method: 'POST', authed: true, body: JSON.stringify({ email, code }) }),
   stats: () => request<Stats>('/admin/stats', { authed: true }),
   exportCsv: (mode: 'ozet' | 'hak' | 'oturum') => request<Blob>(`/admin/export?mode=${mode}`, { authed: true, raw: true }),
+
+  /* Çekiliş (yönetici) */
+  raffles: () => request<Raffle[]>('/admin/raffles', { authed: true }),
+  /** Sahnedeki dönen isimler için yalnızca "ad soyad" */
+  raffleNames: (id: string) => request<{ names: string[] }>(`/admin/raffles/${encodeURIComponent(id)}/names`, { authed: true }),
+  createDraw: (body: { raffleId: string; winners: number; backups: number; prize: string }) =>
+    request<DrawCreated>('/admin/draws', { method: 'POST', authed: true, body: JSON.stringify(body) }),
+  draws: () => request<Draw[]>('/admin/draws', { authed: true }),
+  setResult: (drawId: string, index: number, status: 'teslim edildi' | 'gelmedi') =>
+    request<ResultUpdated>(`/admin/draws/${encodeURIComponent(drawId)}/results/${index}`, { method: 'POST', authed: true, body: JSON.stringify({ status }) }),
+  cancelDraw: (drawId: string) => request<Draw>(`/admin/draws/${encodeURIComponent(drawId)}/cancel`, { method: 'POST', authed: true }),
+  exportDraws: () => request<Blob>('/admin/draws/export', { authed: true, raw: true }),
 };

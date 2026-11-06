@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, ApiError } from '../api';
 import type { Stats } from '../types';
+import { RaffleAdmin } from './RaffleAdmin';
 
 const EXPORTS = [
   { mode: 'ozet', title: 'Özet liste', desc: 'Kişi başı tek satır: çekiliş hakkı ve görev bazında ilerleme.' },
@@ -89,6 +90,8 @@ export function Admin() {
           </tbody>
         </table>
       </div>
+
+      <RaffleAdmin />
 
       <div className="card">
         <h2>Çekiliş dosyaları</h2>

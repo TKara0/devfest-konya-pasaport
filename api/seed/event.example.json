@@ -8,6 +8,10 @@
     "admins": ["yonetici@example.com"],
     "staff": []
   },
+  "raffles": [
+    { "id": "gorev", "name": "Görev Çekilişi", "tasks": ["stand", "game", "linkedin", "instagram"], "weight": "tickets" },
+    { "id": "oturum", "name": "Oturum Çekilişi", "tasks": ["session"], "weight": "count" }
+  ],
   "tasks": [
     {
       "id": "stand",

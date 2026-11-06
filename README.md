@@ -9,7 +9,7 @@ Katılımcıların stant, oturum ve görev kodlarını girip çekiliş hakkı to
 - **Veritabanı:** Firestore. Tarayıcı Firestore'a hiç doğrudan erişmez, her şey API üzerinden yapılır.
 
 ```
-api/      Cloud Run servisi (kod doğrulama, kayıt, sıralama, görevli/yönetici uçları)
+api/      Cloud Run servisi (kod doğrulama, kayıt, sıralama, görevli/yönetici uçları, çekiliş)
 web/      React uygulaması
 firebase.json, firestore.rules, firestore.indexes.json
 ```
@@ -26,7 +26,7 @@ Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapa
 |---|---|
 | `katilimci.demo@gmail.com` (Ayşe Demir) | Kayıtlı katılımcı, biraz ilerlemesi var |
 | `gorevli.demo@gmail.com` | Görevli: saatlik LinkedIn/Instagram kodları, katılımcı adına kod girme |
-| `yonetici.demo@gmail.com` | Yönetici: istatistik, çekiliş CSV'leri, büyük ekran |
+| `yonetici.demo@gmail.com` | Yönetici: istatistik, çekiliş (`/#cekilis` sahnesi dahil), CSV'ler, büyük ekran |
 | `yeni.demo@gmail.com` | Kaydı yok: kayıt akışını denemek için |
 | `203301001@ogr.selcuk.edu.tr` | Öğrenci maili: reddedildiğini görmek için |
 
@@ -101,7 +101,7 @@ python deploy.py etkinlik-gunu --kapat   # akşam: tekrar 0
 `event.json` içindeki `roles.admins` ve `roles.staff` listelerine Gmail adreslerini yazıp `npm run seed` çalıştırın.
 
 - **Görevli:** dönen kodları görür, katılımcının Gmail adresiyle onun adına kod girebilir (telefonu kapanan vb. için).
-- **Yönetici:** görevli + canlı istatistik + çekiliş CSV'leri + büyük ekran.
+- **Yönetici:** görevli + canlı istatistik + çekiliş yapma/yönetme + çekiliş CSV'leri + büyük ekran.
 
 ## Ekranlar
 
@@ -111,10 +111,53 @@ python deploy.py etkinlik-gunu --kapat   # akşam: tekrar 0
 | `/#oturumlar` | Oturum programı, katılınan/kilitlenen oturumlar |
 | `/#siralama` | Top 20 |
 | `/#gorevli` | Dönen kodlar + katılımcı adına kod girme |
-| `/#yonetim` | İstatistik ve çekiliş dosyaları |
+| `/#yonetim` | İstatistik, çekiliş (yapma, geçmiş, teslim durumu, iptal) ve çekiliş dosyaları |
+| `/#cekilis` | Projektör için tam ekran çekiliş sahnesi (yalnızca yönetici; değilse pasaporta yönlendirir) |
 | `/#ekran` | Salon ekranı için tam ekran Top 20 (giriş gerekmez) |
 
+## Çekiliş
+
+Gün sonunda yönetici, projektöre bağlı bilgisayarda yönetici Gmail'iyle girip **`/#cekilis`** sahnesini açar (Yönetim sekmesindeki *Tam ekran sahneyi aç*). Kategori, kazanan/yedek sayısı ve isteğe bağlı ödül adı seçilip **Çek**'e basılır. Seçim **sunucuda** yapılır; ekrandaki dönen isimler yalnızca gösteridir ve sonucu değiştirmez. Sonuçlar (kazanan, yedek, hangi kategori) `draws` koleksiyonuna kaydedilir. Aynı işlemler Yönetim sekmesindeki **Çekiliş** bölümünden de yapılabilir; orada geçmiş çekilişler, teslim durumu, iptal ve CSV (*Kazananları indir*) bulunur.
+
+**Kategoriler** `event.json` içindeki `raffles` dizisinde tanımlanır (`npm run seed` ile yazılır; bilinmeyen görev id'si seed'i hatayla durdurur):
+
+```json
+{ "id": "gorev",  "name": "Görev Çekilişi",  "tasks": ["stand","game","linkedin","instagram"], "weight": "tickets" },
+{ "id": "oturum", "name": "Oturum Çekilişi", "tasks": ["session"], "weight": "count" }
+```
+
+Bir kişinin kategorideki **şansı** `api/src/raffle.js` içindeki `weightFor` fonksiyonunda hesaplanır: `tickets` → listedeki görevlerin ilerleme × ödül toplamı, `count` → listedeki görevlerin ilerleme toplamı. Kademeli hak kuralı kesinleşince yalnızca bu fonksiyon değişir.
+
+| Kural | Ayrıntı |
+|---|---|
+| Havuz | Şansı > 0 olan kayıtlı katılımcılar |
+| Havuza girmez | İptal edilmemiş herhangi bir çekilişte **kazanan** olanlar (bekliyor / teslim edildi / gelmedi, kazanana geçen yedekler dahil), `roles` listesindeki görevli ve yöneticiler |
+| Yedek | Yedek olarak çıkmak havuzdan çıkarmaz; ancak kazanana geçerse çıkar |
+| Seçim | `crypto` ile ağırlıklı, iadesiz: aynı kişi aynı çekilişte iki kez çıkmaz. Önce kazananlar, sonra yedekler |
+| Sayılar | Kazanan 1–50, yedek 0–50. Havuz yetmezse çekilebildiği kadar çekilir, yanıtta ve sahnede belirtilir. Havuz boşsa çekiliş yapılmaz |
+| Eşzamanlılık | `locks/draw` belgesi + transaction: aynı anda tek çekiliş (ya da sonuç/iptal işlemi). Takılı kalan kilit 1 dk sonra düşer |
+| Gelmedi | Kişi elenir, sıradaki **bekleyen yedek** kazanana geçer. Yedek kalmadıysa söylenir, otomatik yeni çekim yapılmaz |
+| Teslim edildi / Gelmedi | Yalnızca bekleyen kazanan (ya da kazanana geçen yedek) işaretlenir; işaret geri alınamaz |
+| İptal | Çekiliş kaydı silinmez, durumu "iptal edildi" olur; kazananlar havuza geri döner ve pasaportlarındaki kart kalkar |
+| Katılımcı | Pasaportun en üstünde **Kazandın!** kartı (kategori, ödül, "Ödülünü almak için kayıt masasına gel."); teslim edilince "Ödülünü aldın". Yedeklik bilgisi katılımcıya gösterilmez |
+
+Çekiliş uçları (hepsi yönetici rolü ister, `Cache-Control: no-store`):
+
+| Uç | İş |
+|---|---|
+| `GET /api/admin/raffles` | Kategoriler + anlık havuz büyüklüğü ve toplam şans |
+| `GET /api/admin/raffles/:id/names` | Sahne animasyonu için havuzdaki "ad soyad" listesi (telefon/e-posta yok) |
+| `POST /api/admin/draws` | `{ raffleId, winners, backups, prize? }` → çekilişi yapar, kaydı döner |
+| `GET /api/admin/draws` | Tüm çekilişler (yeniden eskiye) |
+| `POST /api/admin/draws/:id/results/:index` | `{ status: "teslim edildi" \| "gelmedi" }` |
+| `POST /api/admin/draws/:id/cancel` | Çekilişi iptal eder |
+| `GET /api/admin/draws/export` | CSV: Çekiliş, Kategori, Ödül, Tür, Sıra, Durum, Ad Soyad, Telefon, E-posta, Zaman (iptal edilen çekilişlerin satırları durum sütununda "iptal edildi" der) |
+
+Demoda (`npm run demo`) `yonetici.demo@gmail.com` ile giriş yapıp tam akış denenebilir; örnek katılımcılar hem görev hem oturum havuzundadır.
+
 ## Çekiliş dosyaları
+
+Bunlar harici çekiliş uygulaması içindir; yukarıdaki sistemden bağımsızdır.
 
 Yönetim ekranından indirilen CSV'lerin ilk dört sütunu çekiliş uygulamasının beklediği sırada: **Zaman damgası, Ad Soyad, Telefon, E-posta**. Telefon isteğe bağlı olduğu için boş olabilir; çekiliş uygulaması kişiyi telefonla tanıyorsa e-postayı kullanacak şekilde güncellenmeli.
 
@@ -147,9 +190,10 @@ VITE_USE_EMULATOR=true VITE_FIREBASE_PROJECT_ID=demo-pasaport npm run dev
 
 ```bash
 cd api
-npm test           # saatlik kod, telefon/kayıt doğrulama
+npm test           # saatlik kod, telefon/kayıt doğrulama, çekiliş şansı ve ağırlıklı/iadesiz seçim
 npm run test:e2e   # API uçtan uca: kayıt, kayıt niyeti, tekrar kod, oturum çakışması, süresi dolan kod,
-                   # eşzamanlı istek, deneme sınırı, sıralama, roller, CSV dışa aktarımı
+                   # eşzamanlı istek, deneme sınırı, sıralama, roller, CSV dışa aktarımı; çekiliş: ağırlıklı seçim,
+                   # havuz dışı kuralları, yedek/gelmedi/iptal, eşzamanlı çekiliş kilidi, çekiliş CSV'si, /api/me wins
 ```
 
 `test:e2e` gerçek Express uygulamasını bellek içi bir Firestore taklidiyle çalıştırır, emülatör gerektirmez.

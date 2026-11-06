@@ -14,6 +14,7 @@ import { randomInt } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { db } from '../src/firebase.js';
+import { validateRaffles } from '../src/raffle.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const seedDir = join(here, '..', 'seed');
@@ -50,6 +51,11 @@ for (const s of cfg.sessions || []) {
   if (!/^\d{2}:\d{2}$/.test(s.slot)) fail(`${s.id}: slot SS:DD biçiminde olmalı (ör. 10:00)`);
 }
 if ((cfg.sessions || []).length && !sessionTasks.length) fail('Oturum var ama session tipinde görev yok.');
+try {
+  validateRaffles(cfg.raffles, cfg.tasks);
+} catch (e) {
+  fail(`raffles: ${e.message}`);
+}
 
 /* ---------- kodlar ---------- */
 const existing = await db.collection('codes').get();
@@ -87,7 +93,7 @@ const stale = existing.docs.filter((d) => !wantedCodes.has(d.id));
 
 /* ---------- yaz ---------- */
 const ops = [];
-ops.push((b) => b.set(db.doc('config/event'), { event: cfg.event || {}, tasks: cfg.tasks, sessions: cfg.sessions || [], updatedAt: Date.now() }));
+ops.push((b) => b.set(db.doc('config/event'), { event: cfg.event || {}, tasks: cfg.tasks, sessions: cfg.sessions || [], raffles: cfg.raffles || [], updatedAt: Date.now() }));
 for (const w of wanted) ops.push((b) => b.set(db.doc(`codes/${w.code}`), w.data));
 for (const d of stale) ops.push((b) => b.delete(d.ref));
 
@@ -118,6 +124,7 @@ writeFileSync(join(seedDir, 'codes-print.csv'), csv);
 const fresh = wanted.filter((w) => !codeByKey.has(w.data.stepId || w.data.sessionId)).length;
 console.log(`✓ ${cfg.tasks.length} görev, ${(cfg.sessions || []).length} oturum yazıldı.`);
 console.log(`✓ ${wanted.length} sabit kod (${fresh} yeni, ${wanted.length - fresh} korundu), ${stale.length} eski kod silindi.`);
+console.log(`✓ ${(cfg.raffles || []).length} çekiliş kategorisi.`);
 console.log(`✓ ${roles.size} görevli/yönetici rolü.`);
 console.log(`→ Baskı listesi: seed/codes-print.csv`);
 process.exit(0);
