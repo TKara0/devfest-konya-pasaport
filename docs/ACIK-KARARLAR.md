@@ -14,6 +14,7 @@ Henüz kesinleşmemiş konular. Karar verildikçe "Karar" sütunu doldurulur, il
 | "Gelmedi" işaretlenen kazanan sonraki çekilişlere girebilir mi | Giremez | |
 | Görevli/yönetici hesapları çekilişlere girer mi | Girmez | |
 | Ödül adları ve hangi çekilişte hangi ödül | Çekiliş açılırken yönetici ödül adını yazar (isteğe bağlı) | |
+| Çekilişten önce kod girişi kapatılsın mı (çekiliş anında hak sayıları değişmesin diye) | Kapatılmaz; çekiliş o anki haklarla yapılır | |
 | Kazanan ödülünü nereden/ne zamana kadar alır (sitedeki bildirim metni) | "Ödülünü almak için kayıt masasına gel." | |
 
 ## Kesinleşenler (çekiliş)
