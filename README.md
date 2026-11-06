@@ -3,9 +3,8 @@
 Katılımcıların stant, oturum ve görev kodlarını girip çekiliş hakkı topladığı sistem.
 
 - **Ön yüz:** React + Vite + TypeScript, Firebase Hosting
-- **Giriş:** Firebase Authentication (Google). Kimlik kişisel **Gmail** adresidir; öğrenci/kurum e-postası kabul edilmez. Şifre yok, çıkış yapan kişi aynı Gmail ile girince ilerlemesi geri gelir.
-- **Giriş/kayıt iki yolla:** Gmail adresini yazıp gelen tek kullanımlık bağlantıya tıklamak (şifresiz e-posta bağlantısı) ya da “Google ile giriş yap”.
-- **Kayıt:** ad, soyad, Gmail, telefon (isteğe bağlı).
+- **Giriş:** Firebase Authentication, **Gmail adresine e-posta bağlantısı** (şifresiz). Google hesabıyla giriş (OAuth) kullanılmıyor. Kimlik kişisel Gmail adresidir; öğrenci/kurum e-postası kabul edilmez. Çıkış yapan kişi aynı Gmail ile girince ilerlemesi geri gelir.
+- **Kayıt:** ad, soyad, Gmail, telefon (isteğe bağlı). Form bilgisi bağlantı gönderilmeden önce sunucuya bırakılır (`intents/`); bağlantı Gmail uygulamasında ya da başka bir tarayıcıda açılsa da kayıt tamamlanır.
 - **API:** Node.js + Express, Cloud Run (`europe-west1`)
 - **Veritabanı:** Firestore. Tarayıcı Firestore'a hiç doğrudan erişmez, her şey API üzerinden yapılır.
 
@@ -21,7 +20,7 @@ firebase.json, firestore.rules, firestore.indexes.json
 npm run demo        # Node.js 22.3+ gerekir; ilk seferde bağımlılıkları kendisi kurar
 ```
 
-Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapatınca veriler sıfırlanır. “Gmail ile giriş yap” denince Google yerine test hesabı seçme kutusu çıkar:
+Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapatınca veriler sıfırlanır. Gmail kutusuna aşağıdaki adreslerden birini yazıp **Giriş yap**'a bas. Demoda e-posta gitmez; Gmail'e gidecek bağlantı ekranda açılır, ona tıklayınca giriş yapılır. Giriş ekranındaki adreslere tıklayınca kutuya kendiliğinden yazılır.
 
 | Hesap | Ne için |
 |---|---|
@@ -31,9 +30,7 @@ Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapa
 | `yeni.demo@gmail.com` | Kaydı yok: kayıt akışını denemek için |
 | `203301001@ogr.selcuk.edu.tr` | Öğrenci maili: reddedildiğini görmek için |
 
-Kutudan istediğin başka bir adresle de girebilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 10:00'da Salon B'de (`300003`), `300002` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
-
-Gmail adresini yazıp “Giriş yap” dersen demoda e-posta gitmez; Gmail'e gidecek bağlantı ekranda gösterilir.
+Kayıt ol sekmesinden istediğin başka bir Gmail ile yeni hesap da açabilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 10:00'da Salon B'de (`300003`), `300002` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
 
 `web/.env` içinde Firebase bilgisi yokken `cd web && npm run dev` de otomatik demo modunda açılır (API için kökte `npm run demo` gerekir).
 
@@ -62,52 +59,42 @@ Demo modu yalnızca yerel geliştirme sunucusunda çalışır. Normal derlemeye 
 
 `api/seed/event.example.json` dosyasını `api/seed/event.json` olarak kopyalayıp gerçek stant, oturum ve puanlarla doldurun. Bu dosya repoya girmez.
 
-## İlk kurulum (bir kez)
+## Google Cloud'a kurulum ve yayın
 
-1. **Firebase projesi:** [console.firebase.google.com](https://console.firebase.google.com) → yeni proje → **Blaze** planı (Cloud Run için gerekli). Google Cloud konsolunda bütçe uyarısı kurun.
-2. **Authentication** → Sign-in method → **Google**'ı ve **Email/Password → Email link (passwordless sign-in)** seçeneğini açın (Gmail adresine giriş bağlantısı için). Özel alan adı kullanacaksanız *Authorized domains*'e ekleyin.
-3. **Firestore** → veritabanı oluşturun, konum `europe-west1` (ya da `eur3`).
-4. **Web uygulaması** ekleyin, yapılandırmayı `web/.env` dosyasına yazın (`web/.env.example`'a bakın).
-   `VITE_FIREBASE_AUTH_DOMAIN` olarak sitenin yayınlandığı alan adını (`<proje>.web.app` ya da özel alan adınız) yazın, yoksa iOS Safari'de giriş bozulabilir.
-5. Proje kimliğini bağlayın:
-   ```bash
-   cp .firebaserc.example .firebaserc   # içindeki proje kimliğini düzeltin
-   firebase deploy --only firestore     # kurallar + sıralama indeksi
-   ```
-6. **Kod sırrı** (saatlik kodları üretir, kimseyle paylaşmayın):
-   ```bash
-   openssl rand -hex 32 | tr -d '\n' | gcloud secrets create pasaport-code-secret --data-file=-
-   ```
+Tüm Google Cloud/Firebase işleri `deploy.py` ile yapılır (Windows, macOS, Linux). Gerekenler: [gcloud CLI](https://cloud.google.com/sdk/docs/install) (`gcloud auth login` yapılmış), Node.js 22+, Python 3. Her komut `--dene` ile çalıştırılırsa hiçbir şey yapmadan ne yapacağını yazdırır.
 
-## Yayına alma
+**1. Firebase projesi (konsoldan, bir kez):** [console.firebase.google.com](https://console.firebase.google.com) → yeni proje → **Blaze** planı. Blaze şart: Cloud Run için ve Spark planında günde yalnızca 5 giriş e-postası gönderilebildiği için (Blaze'de 25.000). Google Cloud konsolunda bütçe uyarısı kur.
 
+**2. Otomatik kurulum (bir kez):**
 ```bash
-# 1) API → Cloud Run
-gcloud run deploy pasaport-api --source api --region europe-west1 \
-  --allow-unauthenticated \
-  --set-secrets CODE_SECRET=pasaport-code-secret:latest \
-  --max-instances 10 --concurrency 80 --memory 512Mi
-
-# Cloud Run servis hesabına sır okuma izni (ilk seferde hata verirse)
-gcloud secrets add-iam-policy-binding pasaport-code-secret \
-  --member serviceAccount:<PROJE_NUMARASI>-compute@developer.gserviceaccount.com \
-  --role roles/secretmanager.secretAccessor
-
-# 2) Görevler, oturumlar, kodlar, roller → Firestore
-gcloud auth application-default login
-cd api && GCLOUD_PROJECT=<proje-id> npm run seed     # → seed/codes-print.csv (baskı listesi)
-
-# 3) Ön yüz → Firebase Hosting (/api/** isteklerini Cloud Run'a yönlendirir)
-cd ../web && npm ci && npm run build && cd .. && firebase deploy --only hosting
+python deploy.py kurulum --proje <proje-id>
 ```
+API'leri açar, Firestore veritabanını (`europe-west1`) oluşturur, saatlik kodların sırrını Secret Manager'a yazar, Cloud Run'a izinleri verir, Firestore kurallarını ve indeksi yükler. Sonunda konsoldan elle yapılacakları listeler:
 
-`npm run seed` tekrar çalıştırılabilir: daha önce üretilmiş kodlar korunur, basılmış kartlar geçersiz olmaz. Yalnızca yeni eklenen adımlara kod üretilir.
+- **Authentication → Sign-in method → Email/Password → Email link (passwordless sign-in)** açılır. Google sağlayıcısı gerekmez.
+- **Authentication → Templates:** giriş e-postasının dili Türkçe yapılır.
+- **Authentication → Settings:** etkinlik günü için yeni hesap kotasına geçici artış planlanır. Varsayılan sınır **IP başına saatte 100 yeni hesap**; salondaki herkes aynı Wi-Fi'dan kayıt olursa takılır.
+- **Proje ayarları → Web uygulaması ekle** → yapılandırma `web/.env` dosyasına yazılır (`web/.env.example`'a bak).
 
-**Etkinlik günü** ilk istek yavaş başlamasın diye:
+**3. Etkinlik verisi:** `api/seed/event.example.json` → `api/seed/event.json` olarak kopyalanır, gerçek stant/oturum/puan/görevli bilgileriyle doldurulur (repoya girmez).
 ```bash
-gcloud run services update pasaport-api --region europe-west1 --min-instances 1
+gcloud auth application-default login   # bir kez
+python deploy.py seed                    # → api/seed/codes-print.csv (baskı listesi)
 ```
-Etkinlikten sonra `--min-instances 0` yapın.
+Seed tekrar çalıştırılabilir: üretilmiş kodlar korunur, basılmış kartlar geçersiz olmaz.
+
+**4. Yayın:**
+```bash
+python deploy.py yayinla                 # API → Cloud Run, ön yüz → Firebase Hosting
+python deploy.py yayinla --sadece web    # yalnızca ön yüz
+```
+Site: `https://<proje-id>.web.app`
+
+**5. Etkinlik günü:**
+```bash
+python deploy.py etkinlik-gunu           # sabah: Cloud Run en az 1 kopya, ilk istek beklemez
+python deploy.py etkinlik-gunu --kapat   # akşam: tekrar 0
+```
 
 ## Roller
 
@@ -137,7 +124,9 @@ Yönetim ekranından indirilen CSV'lerin ilk dört sütunu çekiliş uygulaması
 
 `hak` ve `oturum` dosyalarında aynı kişi birden çok satırda yer alır. Çekiliş uygulaması tekrarlı satırları silmemeli.
 
-## Yerel geliştirme
+## Yerel geliştirme (emülatörle)
+
+`python start.py` emülatörleri, seed'i, API'yi ve ön yüzü tek komutla başlatır (Java gerekir). Elle yapmak istersen:
 
 ```bash
 # Terminal 1: emülatörler
@@ -149,7 +138,7 @@ export FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 FIREBASE_AUTH_EMULATOR_HOST=127.0.
 export GCLOUD_PROJECT=demo-pasaport CODE_SECRET=yerel-gelistirme-sirri-123
 npm run seed && npm run dev
 
-# Terminal 3: ön yüz
+# Terminal 3: ön yüz (giriş bağlantısı e-postayla gitmez, emülatör terminaline yazılır)
 cd web && npm ci
 VITE_USE_EMULATOR=true VITE_FIREBASE_PROJECT_ID=demo-pasaport npm run dev
 ```
@@ -159,7 +148,7 @@ VITE_USE_EMULATOR=true VITE_FIREBASE_PROJECT_ID=demo-pasaport npm run dev
 ```bash
 cd api
 npm test           # saatlik kod, telefon/kayıt doğrulama
-npm run test:e2e   # API uçtan uca: kayıt, tekrar kod, oturum çakışması, süresi dolan kod,
+npm run test:e2e   # API uçtan uca: kayıt, kayıt niyeti, tekrar kod, oturum çakışması, süresi dolan kod,
                    # eşzamanlı istek, deneme sınırı, sıralama, roller, CSV dışa aktarımı
 ```
 
@@ -167,10 +156,14 @@ npm run test:e2e   # API uçtan uca: kayıt, tekrar kod, oturum çakışması, s
 
 ## Yayın öncesi kontrol listesi
 
+- [ ] Blaze planı açık, bütçe uyarısı kurulu
+- [ ] `python deploy.py kurulum` çalıştı, konsoldaki elle adımlar yapıldı (e-posta bağlantısı açık, şablon Türkçe)
+- [ ] Etkinlik günü için yeni hesap kotasına geçici artış planlandı
 - [ ] `event.json` görevleri, puanları ve oturum programı kesinleşti
-- [ ] `npm run seed` çalıştı, `codes-print.csv` baskıya gitti
+- [ ] `python deploy.py seed` çalıştı, `codes-print.csv` baskıya gitti
 - [ ] `web/public/kvkk.html` aydınlatma metni hukuki olarak dolduruldu
 - [ ] Görevli/yönetici Gmail adresleri `roles` listesinde
-- [ ] Gerçek telefonlarla prova (iOS Safari, Android Chrome, Instagram içinden açılış)
+- [ ] Giriş e-postasının Gmail'de Spam'e düşmediği denendi
+- [ ] Gerçek telefonlarla prova: iOS Safari, Android Chrome; bağlantının Gmail uygulamasından açılması
 - [ ] Yük testi
-- [ ] Etkinlik sabahı `--min-instances 1`
+- [ ] Etkinlik sabahı `python deploy.py etkinlik-gunu`

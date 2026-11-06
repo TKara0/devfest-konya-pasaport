@@ -1,66 +1,42 @@
 import { useState, type FormEvent } from 'react';
-import { Icon } from './Icon';
 import { api, ApiError } from '../api';
-import { isGmail, isInAppBrowser, logOut, sendLoginLink, signInWithGoogle } from '../firebase';
+import { isGmail, logOut, sendLoginLink } from '../firebase';
 import type { Me } from '../types';
 
 export type AuthTab = 'giris' | 'kayit';
 
-export interface RegisterDraft {
+interface RegisterForm {
   firstName: string;
   lastName: string;
   phone: string;
   kvkk: boolean;
 }
 
-const DRAFT_KEY = 'pasaport-kayit';
-const DRAFT_TTL = 24 * 60 * 60 * 1000;
-
-/**
- * Kayıt formu, Google penceresi ya da Gmail'deki bağlantı açılırken kaybolmasın diye
- * bu cihazda saklanır (bağlantı yeni sekmede açılabileceği için localStorage).
- */
-export const pendingDraft = {
-  save(d: RegisterDraft) {
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...d, at: Date.now() })); } catch { /* gizli sekme */ }
-  },
-  take(): RegisterDraft | null {
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      localStorage.removeItem(DRAFT_KEY);
-      if (!raw) return null;
-      const d = JSON.parse(raw);
-      return Date.now() - (d.at || 0) < DRAFT_TTL ? d : null;
-    } catch {
-      return null;
-    }
-  },
-  clear() {
-    try { localStorage.removeItem(DRAFT_KEY); } catch { /* yok say */ }
-  },
-};
-
 const EMAIL_ERR = 'Kişisel Gmail adresini yaz (ornek@gmail.com). Öğrenci ya da kurum e-postası kabul edilmiyor.';
-const linkError = (e: unknown) => {
+
+function linkError(e: unknown) {
+  if (e instanceof ApiError) return e.message;
   const code = (e as { code?: string }).code || '';
-  if (code === 'auth/quota-exceeded') return 'Şu an çok fazla bağlantı istendi. Birkaç dakika sonra dene ya da Google ile giriş yap.';
-  if (code === 'auth/operation-not-allowed') return 'Gmail bağlantısıyla giriş henüz açılmamış. Google ile giriş yap.';
-  return 'Bağlantı gönderilemedi. İnternetini kontrol et ya da Google ile giriş yap.';
-};
+  if (code === 'auth/quota-exceeded') return 'Şu an çok fazla giriş bağlantısı istendi. Birkaç dakika sonra tekrar dene ya da bir görevliye başvur.';
+  if (code === 'auth/operation-not-allowed') return 'Gmail bağlantısıyla giriş henüz açılmamış. Bir görevliye başvur.';
+  return 'Bağlantı gönderilemedi. İnternetini kontrol edip tekrar dene.';
+}
 
 interface Props {
-  /** Giriş yapılmış ama pasaportu olmayan kullanıcının Gmail adresi */
+  /** Bağlantıyla giriş yapılmış ama pasaportu olmayan kullanıcının Gmail adresi */
   signedInEmail?: string | null;
-  signedInName?: string;
   initialTab?: AuthTab;
   notice?: string;
   onRegistered: (me: Me) => void;
 }
 
-export function AuthScreen({ signedInEmail, signedInName = '', initialTab = 'giris', notice, onRegistered }: Props) {
+export function AuthScreen({ signedInEmail, initialTab = 'giris', notice, onRegistered }: Props) {
   const [tab, setTab] = useState<AuthTab>(signedInEmail ? 'kayit' : initialTab);
   const [sentTo, setSentTo] = useState<string | null>(null);
-  const inApp = isInAppBrowser();
+  const pick = (t: AuthTab) => {
+    setTab(t);
+    setSentTo(null);
+  };
 
   return (
     <div className="auth">
@@ -70,14 +46,12 @@ export function AuthScreen({ signedInEmail, signedInName = '', initialTab = 'gir
         <p className="sub">Stantlardaki, oturumlardaki ve görevlerdeki 6 haneli kodları gir. Her kod çekiliş hakkına dönüşür.</p>
       </div>
 
-      {inApp && <InAppWarning />}
-
       <div className="card auth-card">
         <div className="tabs" role="tablist" aria-label="Giriş ya da kayıt">
-          <button type="button" role="tab" id="tab-giris" aria-selected={tab === 'giris'} aria-controls="panel-giris" onClick={() => { setTab('giris'); setSentTo(null); }}>
+          <button type="button" role="tab" id="tab-giris" aria-selected={tab === 'giris'} aria-controls="panel-giris" onClick={() => pick('giris')}>
             Giriş yap
           </button>
-          <button type="button" role="tab" id="tab-kayit" aria-selected={tab === 'kayit'} aria-controls="panel-kayit" onClick={() => { setTab('kayit'); setSentTo(null); }}>
+          <button type="button" role="tab" id="tab-kayit" aria-selected={tab === 'kayit'} aria-controls="panel-kayit" onClick={() => pick('kayit')}>
             Kayıt ol
           </button>
         </div>
@@ -91,21 +65,12 @@ export function AuthScreen({ signedInEmail, signedInName = '', initialTab = 'gir
         {sentTo ? (
           <LinkSent email={sentTo} onBack={() => setSentTo(null)} />
         ) : tab === 'giris' ? (
-          <LoginPanel signedInEmail={signedInEmail} onSwitch={() => setTab('kayit')} onSent={setSentTo} />
+          <LoginPanel signedInEmail={signedInEmail} onSwitch={() => pick('kayit')} onSent={setSentTo} />
         ) : (
-          <RegisterPanel signedInEmail={signedInEmail} signedInName={signedInName} onRegistered={onRegistered} onSent={setSentTo} />
+          <RegisterPanel signedInEmail={signedInEmail} onRegistered={onRegistered} onSent={setSentTo} />
         )}
       </div>
     </div>
-  );
-}
-
-function GoogleButton({ label, onClick, busy }: { label: string; onClick: () => void; busy: boolean }) {
-  return (
-    <button type="button" className="btn btn-google wide-tight" onClick={onClick} disabled={busy}>
-      <Icon name="google" />
-      {label}
-    </button>
   );
 }
 
@@ -114,31 +79,17 @@ function LoginPanel({ signedInEmail, onSwitch, onSent }: { signedInEmail?: strin
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  async function sendLink(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     const m = email.trim().toLowerCase();
     if (!isGmail(m)) return setError(EMAIL_ERR);
     setError('');
     setBusy(true);
-    pendingDraft.clear();
     try {
       await sendLoginLink(m);
       onSent(m);
     } catch (err) {
       setError(linkError(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function google() {
-    setError('');
-    setBusy(true);
-    pendingDraft.clear();
-    try {
-      await signInWithGoogle();
-    } catch {
-      setError('Google girişi tamamlanamadı. Sayfayı Chrome ya da Safari’de açıp tekrar dene.');
     } finally {
       setBusy(false);
     }
@@ -156,75 +107,68 @@ function LoginPanel({ signedInEmail, onSwitch, onSent }: { signedInEmail?: strin
           </button>
         </div>
         <button type="button" className="btn btn-ghost wide" onClick={() => void logOut()}>
-          Başka bir Gmail hesabı kullan
+          Başka bir Gmail adresi kullan
         </button>
       </div>
     );
   }
 
   return (
-    <div id="panel-giris" role="tabpanel" aria-labelledby="tab-giris" className="panel">
-      <form className="form tight" onSubmit={sendLink} noValidate>
-        <div className="field">
-          <label htmlFor="login-email">Gmail adresin</label>
-          <input
-            id="login-email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            placeholder="ornek@gmail.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <span className="hint">Şifre yok. Bu adrese tek tıkla giriş bağlantısı göndeririz.</span>
-        </div>
-        <button className="btn btn-red" type="submit" disabled={busy}>
-          {busy ? 'Gönderiliyor…' : 'Giriş yap'}
-        </button>
-      </form>
-
-      <div className="or">veya</div>
-      <GoogleButton label="Google ile giriş yap" onClick={google} busy={busy} />
-
+    <form id="panel-giris" role="tabpanel" aria-labelledby="tab-giris" className="panel form" onSubmit={submit} noValidate>
+      <div className="field">
+        <label htmlFor="login-email">Gmail adresin</label>
+        <input
+          id="login-email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          autoCapitalize="none"
+          placeholder="ornek@gmail.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <span className="hint">Şifre yok. Bu adrese tek dokunuşla giriş bağlantısı göndeririz.</span>
+      </div>
       {error && <p className="err-text">{error}</p>}
-      <p className="hint-line">Kayıt olurken kullandığın Gmail ile gir; tüm kodların ve çekiliş hakların geri gelir.</p>
-    </div>
+      <button className="btn btn-red" type="submit" disabled={busy}>
+        {busy ? 'Gönderiliyor…' : 'Giriş yap'}
+      </button>
+      <p className="hint-line">Kayıt olurken yazdığın Gmail ile gir; tüm kodların ve çekiliş hakların geri gelir.</p>
+      {import.meta.env.VITE_DEMO === 'true' && (
+        <div className="demo-accounts">
+          <b>Demo hesapları</b> (tıkla, adres yazılsın):
+          {['katilimci.demo@gmail.com', 'gorevli.demo@gmail.com', 'yonetici.demo@gmail.com'].map((m) => (
+            <button key={m} type="button" onClick={() => setEmail(m)}>
+              {m}
+            </button>
+          ))}
+        </div>
+      )}
+    </form>
   );
 }
 
-function RegisterPanel({
-  signedInEmail,
-  signedInName,
-  onRegistered,
-  onSent,
-}: {
-  signedInEmail?: string | null;
-  signedInName: string;
-  onRegistered: (me: Me) => void;
-  onSent: (e: string) => void;
-}) {
-  const [first, ...rest] = signedInName.trim().split(/\s+/);
-  const [form, setForm] = useState<RegisterDraft>({ firstName: first || '', lastName: rest.join(' '), phone: '', kvkk: false });
+function RegisterPanel({ signedInEmail, onRegistered, onSent }: { signedInEmail?: string | null; onRegistered: (me: Me) => void; onSent: (e: string) => void }) {
+  const [form, setForm] = useState<RegisterForm>({ firstName: '', lastName: '', phone: '', kvkk: false });
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const set = (k: keyof RegisterDraft) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (k: keyof RegisterForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
-  function checkForm(): string {
+  function check(): string {
     if (!form.firstName.trim() || !form.lastName.trim()) return 'Ad ve soyad gerekli.';
+    if (!signedInEmail && !isGmail(email.trim())) return EMAIL_ERR;
     const d = form.phone.replace(/\D/g, '');
     if (d && !/^(90)?0?5\d{9}$/.test(d)) return 'Telefonu 05xx xxx xx xx biçiminde yaz ya da boş bırak.';
     if (!form.kvkk) return 'Devam etmek için aydınlatma metnini onaylaman gerekiyor.';
     return '';
   }
 
-  // Ana düğme: yazılan Gmail'e bağlantı gönder (ya da zaten girişliyse kaydı bitir)
   async function submit(e: FormEvent) {
     e.preventDefault();
-    const m = checkForm() || (!signedInEmail && !isGmail(email.trim()) ? EMAIL_ERR : '');
+    const m = check();
     setError(m);
     if (m) return;
     setBusy(true);
@@ -232,31 +176,14 @@ function RegisterPanel({
       if (signedInEmail) {
         onRegistered(await api.register(form));
       } else {
+        // Bilgiler sunucuda beklesin; bağlantı hangi tarayıcıda açılırsa açılsın kayıt tamamlanır
         const addr = email.trim().toLowerCase();
-        pendingDraft.save(form);
+        await api.registerIntent({ ...form, email: addr });
         await sendLoginLink(addr);
         onSent(addr);
       }
     } catch (err) {
-      if (!signedInEmail) pendingDraft.clear();
-      setError(err instanceof ApiError ? err.message : linkError(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  // Alternatif: Google hesabıyla kayıt (Gmail adresi Google'dan gelir)
-  async function google() {
-    const m = checkForm();
-    setError(m);
-    if (m) return;
-    setBusy(true);
-    try {
-      pendingDraft.save(form);
-      await signInWithGoogle();
-    } catch {
-      pendingDraft.clear();
-      setError('Google girişi tamamlanamadı. Sayfayı Chrome ya da Safari’de açıp tekrar dene.');
+      setError(linkError(err));
     } finally {
       setBusy(false);
     }
@@ -320,17 +247,13 @@ function RegisterPanel({
             {busy ? 'Kaydediliyor…' : 'Kaydı tamamla'}
           </button>
           <button className="btn-link" type="button" onClick={() => void logOut()}>
-            Başka bir Gmail hesabı kullan
+            Başka bir Gmail adresi kullan
           </button>
         </>
       ) : (
-        <>
-          <button className="btn btn-red" type="submit" disabled={busy}>
-            {busy ? 'Gönderiliyor…' : 'Kayıt ol'}
-          </button>
-          <div className="or">veya</div>
-          <GoogleButton label="Google ile kayıt ol" onClick={google} busy={busy} />
-        </>
+        <button className="btn btn-red" type="submit" disabled={busy}>
+          {busy ? 'Gönderiliyor…' : 'Kayıt ol'}
+        </button>
       )}
     </form>
   );
@@ -341,40 +264,12 @@ function LinkSent({ email, onBack }: { email: string; onBack: () => void }) {
     <div className="panel sent" role="status">
       <h3>Gmail’ini kontrol et</h3>
       <p>
-        <b>{email}</b> adresine giriş bağlantısı gönderdik. Bağlantıya <b>bu telefonda</b> dokun; pasaportun açılır.
+        <b>{email}</b> adresine giriş bağlantısı gönderdik. Gmail’i aç ve bağlantıya dokun; pasaportun açılır.
       </p>
-      <p className="hint-line">Gelmediyse “Spam” ya da “Promosyonlar” klasörüne bak.</p>
+      <p className="hint-line">Gelmediyse “Spam” ya da “Promosyonlar” klasörüne bak. Birkaç dakika içinde gelmezse Geri dön’e basıp tekrar iste.</p>
       <button type="button" className="btn btn-ghost wide" onClick={onBack}>
         Geri dön
       </button>
     </div>
   );
 }
-
-function InAppWarning() {
-  const [copied, setCopied] = useState(false);
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(window.location.origin);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  }
-  return (
-    <div className="card warn">
-      <h3>Bu sayfayı tarayıcıda aç</h3>
-      <p>
-        Instagram, LinkedIn gibi uygulamaların içinden Google ile giriş yapılamıyor. Sağ üstteki menüden “Tarayıcıda aç”
-        seçeneğine dokun ya da bağlantıyı kopyalayıp Chrome/Safari’ye yapıştır.
-      </p>
-      <div className="copy-row">
-        <code>{window.location.host}</code>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={copyLink}>
-          {copied ? 'Kopyalandı' : 'Bağlantıyı kopyala'}
-        </button>
-      </div>
-    </div>
-  );
-}
-

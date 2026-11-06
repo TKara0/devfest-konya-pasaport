@@ -126,6 +126,25 @@ test('kimlik doğrulama ve kayıt (kimlik = Gmail)', async () => {
   assert.equal(can.json.phone, null);
 });
 
+test('kayıt niyeti: bağlantı başka tarayıcıda açılsa da kayıt tamamlanır', async () => {
+  const DENIZ = 'u-deniz|deniz@gmail.com';
+  const bad = await call('POST', '/register/intent', { body: { email: 'x@ogr.selcuk.edu.tr', firstName: 'X', lastName: 'Y', kvkk: true } });
+  assert.equal(bad.json.error.code, 'GMAIL_REQUIRED');
+  const dup = await call('POST', '/register/intent', { body: { email: 'ali@gmail.com', firstName: 'X', lastName: 'Y', kvkk: true } });
+  assert.equal(dup.json.error.code, 'ALREADY_REGISTERED');
+
+  // Niyet yokken boş kayıt → form istenir
+  const none = await call('POST', '/register', { as: DENIZ, body: {} });
+  assert.equal(none.json.error.code, 'NEEDS_DETAILS');
+
+  const i = await call('POST', '/register/intent', { body: { email: 'Deniz@Gmail.com', firstName: 'Deniz', lastName: 'Ak', phone: '', kvkk: true } });
+  assert.equal(i.status, 204);
+  const r = await call('POST', '/register', { as: DENIZ, body: {} });
+  assert.equal(r.status, 201);
+  assert.equal(r.json.firstName, 'Deniz');
+  assert.equal(db.store.has('intents/deniz@gmail.com'), false, 'niyet kayıttan sonra silinir');
+});
+
 test('öğrenci/kurum maili kabul edilmez', async () => {
   const OGR = 'u-ogr|203301001@ogr.selcuk.edu.tr';
   const me = await call('GET', '/me', { as: OGR });
@@ -217,7 +236,7 @@ test('sıralama: hak sayısı, eşitlikte önce ulaşan, soyad baş harfi', asyn
   fresh();
   const r = await call('GET', '/leaderboard');
   assert.equal(r.status, 200);
-  assert.equal(r.json.participants, 3);
+  assert.equal(r.json.participants, 4);
   // Ali 3 hak (önce ulaştı), Ayşe 3 hak, Can 1 hak
   assert.deepEqual(r.json.top.map((x) => [x.name, x.tickets]), [['Ali Y.', 3], ['Ayşe Y.', 3], ['Can Y.', 1]]);
   const me0 = await call('GET', '/me', { as: ALI });
@@ -253,7 +272,7 @@ test('yönetici istatistik ve çekiliş dosyaları', async () => {
   fresh();
   const st = await call('GET', '/admin/stats', { as: ADMIN });
   assert.equal(st.status, 200);
-  assert.equal(st.json.users, 3);
+  assert.equal(st.json.users, 4);
   assert.equal(st.json.tickets, 3 + 4 + 1);
   assert.equal(st.json.tasks.find((t) => t.id === 'session').completions, 2);
 

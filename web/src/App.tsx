@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getRedirectResult, onAuthStateChanged, type User } from 'firebase/auth';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import { api, ApiError } from './api';
 import { auth, completeLoginLink, isGmail, isLoginLink, logOut, storedLinkEmail } from './firebase';
 import { useLeaderboard } from './useLeaderboard';
 import type { EventConfig, Me, RedeemResult } from './types';
 import { Header, allowedViews, type View } from './components/Header';
-import { AuthScreen, pendingDraft, type AuthTab } from './components/AuthScreen';
+import { AuthScreen, type AuthTab } from './components/AuthScreen';
 import { CodeEntry } from './components/CodeEntry';
 import { TaskGrid } from './components/TaskGrid';
 import { FullBoard, MiniBoard, TicketCard } from './components/Leaderboard';
@@ -62,28 +62,25 @@ function Main({ hash }: { hash: string }) {
   const loadMe = useCallback(async (u: User) => {
     // Kimlik kişisel Gmail: öğrenci/kurum hesabıyla girilirse hemen çıkış yap
     if (!isGmail(u.email)) {
-      pendingDraft.clear();
       setNotice(`${u.email || 'Bu hesap'} kişisel Gmail adresi değil. Öğrenci ya da kurum e-postası yerine kendi Gmail hesabınla devam et.`);
       await logOut();
       return;
     }
     try {
       setMe(await api.me());
-      pendingDraft.clear();
       setNotice('');
       setPhase('ready');
     } catch (e) {
       if (e instanceof ApiError && e.code === 'NOT_REGISTERED') {
-        // Kayıt ol sekmesinden gelindiyse formdaki bilgilerle kaydı tamamla
-        const draft = pendingDraft.take();
-        if (draft) {
-          try {
-            setMe(await api.register(draft));
-            setNotice('');
-            setPhase('ready');
-            showToast('Pasaportun hazır. İlk kodunu gir!');
-            return;
-          } catch (err) {
+        // Kayıt ol sekmesinden gelindiyse sunucudaki kayıt bilgileriyle (niyet) kaydı tamamla
+        try {
+          setMe(await api.register());
+          setNotice('');
+          setPhase('ready');
+          showToast('Pasaportun hazır. İlk kodunu gir!');
+          return;
+        } catch (err) {
+          if (!(err instanceof ApiError && err.code === 'NEEDS_DETAILS')) {
             setNotice(err instanceof ApiError ? err.message : 'Kayıt tamamlanamadı, tekrar dene.');
           }
         }
@@ -100,7 +97,6 @@ function Main({ hash }: { hash: string }) {
   }, [showToast]);
 
   useEffect(() => {
-    void getRedirectResult(auth).catch(() => undefined);
     // Gmail'deki giriş bağlantısıyla açıldıysa girişi tamamla
     if (isLoginLink()) {
       const stored = storedLinkEmail();
@@ -157,7 +153,6 @@ function Main({ hash }: { hash: string }) {
   }
 
   async function onLogout() {
-    pendingDraft.clear();
     setAuthTab('giris');
     await logOut();
     if (window.location.hash) window.location.hash = '';
@@ -187,7 +182,6 @@ function Main({ hash }: { hash: string }) {
         key={`${authKey}-${user?.uid ?? 'anon'}`}
         initialTab={authTab}
         signedInEmail={phase === 'needsProfile' ? user?.email : null}
-        signedInName={user?.displayName || ''}
         notice={notice}
         onRegistered={(m) => {
           setMe(m);

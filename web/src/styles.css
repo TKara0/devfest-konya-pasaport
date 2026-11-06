@@ -157,8 +157,6 @@ h3 { font-size: 16px; line-height: 1.25; }
 .btn-red:hover:not(:disabled) { background: var(--red-700); }
 .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line-2); }
 .btn-ghost:hover { background: var(--paper-2); }
-.btn-google { background: #fff; color: #1f1f1f; border: 1px solid var(--line-2); }
-.btn-google:hover:not(:disabled) { background: #f8f8f8; }
 .btn-link { background: none; color: var(--muted); min-height: 36px; font-weight: 600; text-decoration: underline; }
 
 /* ---------- Kod girişi ---------- */
@@ -343,11 +341,6 @@ section > .card + .card, .stat-row + .card { margin-top: 20px; }
 .hint-line { font-size: 12.5px; color: var(--muted); margin: 14px 0 0; }
 .warn-linked { background: #fbeee4; color: var(--red-700); justify-content: space-between; flex-wrap: wrap; margin-top: 14px; }
 .btn-link.inline { min-height: 0; padding: 0; border: 0; cursor: pointer; color: var(--red); font-weight: 800; }
-.gmail-slot {
-  display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 8px 12px; border-radius: 8px;
-  border: 1px dashed var(--line-2); background: var(--paper-2); color: var(--muted); font-size: 13.5px;
-}
-.gmail-slot svg { width: 18px; height: 18px; flex: none; }
 .field input.readonly { background: var(--paper-2); color: var(--ink-2); font-weight: 600; }
 .optional { font-weight: 600; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-left: 6px; }
 
@@ -356,7 +349,6 @@ section > .card + .card, .stat-row + .card { margin-top: 20px; }
 .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line-2); }
 .panel .or { margin: 4px 0; }
 .panel > .or { margin: 18px 0 14px; }
-.btn.wide-tight { width: 100%; }
 .sent h3 { font-size: 20px; }
 .sent p { margin: 8px 0 0; color: var(--ink-2); }
 
@@ -373,6 +365,8 @@ section > .card + .card, .stat-row + .card { margin-top: 20px; }
 /* Demo modu işaretleri */
 .demo-badge { margin-left: 8px; background: var(--gold-100); color: var(--red-900); padding: 1px 6px; border-radius: 4px; letter-spacing: 0.1em; }
 .demo-hint { position: relative; z-index: 1; margin: 12px 0 0; font-size: 12.5px; color: #f0cdbf; }
+.demo-accounts { margin-top: 12px; padding: 10px 12px; border: 1px dashed var(--gold-700); border-radius: 8px; font-size: 12.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.demo-accounts button { border: 1px solid var(--line-2); background: var(--paper-2); border-radius: 6px; padding: 3px 8px; font-family: var(--f-mono); font-size: 12px; cursor: pointer; }
 .demo-hint b { font-family: var(--f-mono); color: var(--gold-100); font-weight: 600; }
 
 /* ---------- Alt bant ---------- */

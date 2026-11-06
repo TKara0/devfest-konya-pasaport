@@ -45,11 +45,42 @@ export function assertGmail(token) {
   if (token.email_verified === false) throw new ApiError(403, 'EMAIL_NOT_VERIFIED', 'Gmail adresin doğrulanmamış görünüyor.');
 }
 
+/* ------------------------------------------------------------------ */
+/* Kayıt niyeti                                                        */
+/* ------------------------------------------------------------------ */
+
+const INTENT_TTL = 24 * 60 * 60_000;
+
+/**
+ * Kayıt formu, Gmail'e giriş bağlantısı gönderilmeden önce sunucuda saklanır.
+ * Böylece bağlantı Gmail uygulamasında ya da başka bir tarayıcıda açılsa da
+ * ad/soyad/telefon kaybolmaz; giriş tamamlanınca kayıt bu bilgilerle oluşturulur.
+ */
+export async function saveIntent(body) {
+  const email = String(body?.email ?? '').trim().toLowerCase();
+  if (!isAllowedEmail(email))
+    throw new ApiError(400, 'GMAIL_REQUIRED', 'Kişisel Gmail adresini yaz. Öğrenci ya da kurum e-postası kabul edilmiyor.');
+  const data = validateRegistration(body);
+  const existing = await db.doc(`emails/${email}`).get();
+  if (existing.exists) throw new ApiError(409, 'ALREADY_REGISTERED', 'Bu Gmail adresiyle zaten bir pasaport var. Giriş yap sekmesinden devam et.');
+  await db.doc(`intents/${email}`).set({ ...data, kvkk: true, at: Date.now() });
+}
+
 export async function register(token, body) {
   assertGmail(token);
-  const data = validateRegistration(body);
   const uid = token.uid;
   const email = token.email.toLowerCase();
+  const intentRef = db.doc(`intents/${email}`);
+
+  // Formdaki bilgiler gelmediyse (bağlantı başka tarayıcıda açıldı) kayıt niyetini kullan
+  let input = body;
+  if (!body?.firstName) {
+    const intent = await intentRef.get();
+    if (!intent.exists || Date.now() - intent.data().at > INTENT_TTL)
+      throw new ApiError(400, 'NEEDS_DETAILS', 'Kayıt bilgilerin bulunamadı. Adını ve soyadını girip kaydı tamamla.');
+    input = { ...intent.data(), kvkk: true };
+  }
+  const data = validateRegistration(input);
   const userRef = db.doc(`users/${uid}`);
   const emailRef = db.doc(`emails/${email}`);
   const phoneRef = data.phone ? db.doc(`phones/${data.phone}`) : null;
@@ -73,6 +104,7 @@ export async function register(token, body) {
     tx.create(userRef, user);
     tx.create(emailRef, { uid });
     if (phoneRef) tx.create(phoneRef, { uid });
+    tx.delete(intentRef);
   });
 
   return publicUser(uid, user, { rank: null, role: await roleOf(user.email) });

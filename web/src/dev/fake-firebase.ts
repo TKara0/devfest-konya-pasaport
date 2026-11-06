@@ -1,5 +1,6 @@
 /**
  * DEMO MODU — `firebase/app` ve `firebase/auth` yerine geçen sahte modül.
+ * Gmail'e giriş bağlantısı gönderilmez; bağlantı ekranda gösterilir.
  * Yalnızca `npm run demo` (vite.demo.config.ts) ile derlenir; gerçek yapıya girmez.
  *
  * "Gmail ile giriş yap" denildiğinde Google penceresi yerine test hesaplarının
@@ -59,54 +60,6 @@ function setUser(u: DemoUser | null) {
   listeners.forEach((cb) => cb(u));
 }
 
-/* ---------- Hesap seçme kutusu ---------- */
-function chooseAccount(): Promise<DemoUser | null> {
-  return new Promise((resolve) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'demo-picker';
-    wrap.innerHTML = `
-      <div class="demo-box" role="dialog" aria-modal="true" aria-labelledby="demo-title">
-        <p class="demo-tag">DEMO MODU</p>
-        <h2 id="demo-title">Test hesabı seç</h2>
-        <p class="demo-sub">Gerçek Google girişi yerine geçer. Veriler yalnızca yerel demo sunucusunda tutulur.</p>
-        <div class="demo-list">
-          ${ACCOUNTS.map(
-            (a, i) => `<button type="button" data-i="${i}">
-              <span class="demo-av">${a.name.split(' ').map((w) => w[0]).join('').slice(0, 2)}</span>
-              <span class="demo-who"><b>${a.name}</b><span>${a.email}</span><em>${a.note}</em></span>
-            </button>`,
-          ).join('')}
-        </div>
-        <form class="demo-custom">
-          <label for="demo-mail">Başka bir adresle dene</label>
-          <div><input id="demo-mail" type="email" placeholder="ornek@gmail.com" autocomplete="off" /><button type="submit">Devam</button></div>
-        </form>
-        <button type="button" class="demo-cancel">Vazgeç</button>
-      </div>`;
-    const done = (u: DemoUser | null) => {
-      wrap.remove();
-      resolve(u);
-    };
-    wrap.addEventListener('click', (e) => {
-      const t = e.target as HTMLElement;
-      if (t === wrap || t.closest('.demo-cancel')) return done(null);
-      const b = t.closest<HTMLButtonElement>('button[data-i]');
-      if (b) {
-        const a = ACCOUNTS[Number(b.dataset.i)];
-        done(makeUser(a.uid, a.email, a.name));
-      }
-    });
-    wrap.querySelector('form')!.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = (wrap.querySelector('#demo-mail') as HTMLInputElement).value.trim().toLowerCase();
-      if (!email.includes('@')) return;
-      done(userForEmail(email));
-    });
-    document.body.appendChild(wrap);
-    (wrap.querySelector('button[data-i]') as HTMLButtonElement)?.focus();
-  });
-}
-
 /* ---------- firebase/app ---------- */
 export const initializeApp = () => ({});
 
@@ -116,17 +69,6 @@ export const getAuth = () => authObj;
 export const browserLocalPersistence = {};
 export const setPersistence = async () => {};
 export const connectAuthEmulator = () => {};
-export class GoogleAuthProvider {
-  setCustomParameters() {}
-}
-export async function signInWithPopup() {
-  const u = await chooseAccount();
-  if (!u) throw Object.assign(new Error('vazgeçildi'), { code: 'auth/popup-closed-by-user' });
-  setUser(u);
-  return { user: u };
-}
-export const signInWithRedirect = signInWithPopup;
-export const getRedirectResult = async () => null;
 export async function signOut() {
   setUser(null);
 }

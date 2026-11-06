@@ -55,7 +55,11 @@ export const api = {
   config: () => request<EventConfig>('/config'),
   leaderboard: () => request<Board>('/leaderboard'),
   me: () => request<Me>('/me', { authed: true }),
-  register: (body: { firstName: string; lastName: string; phone: string; kvkk: boolean }) =>
+  /** Giriş bağlantısı gönderilmeden önce kayıt formunu sunucuya bırakır. */
+  registerIntent: (body: { email: string; firstName: string; lastName: string; phone: string; kvkk: boolean }) =>
+    request<void>('/register/intent', { method: 'POST', body: JSON.stringify(body), raw: true }),
+  /** Gövde boşsa sunucu kayıt niyetindeki bilgileri kullanır. */
+  register: (body: { firstName: string; lastName: string; phone: string; kvkk: boolean } | Record<string, never> = {}) =>
     request<Me>('/register', { method: 'POST', authed: true, body: JSON.stringify(body) }),
   redeem: (code: string) => request<RedeemResult>('/redeem', { method: 'POST', authed: true, body: JSON.stringify({ code }) }),
   staffCodes: () => request<RotatingCode[]>('/staff/codes', { authed: true }),

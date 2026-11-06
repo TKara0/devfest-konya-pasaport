@@ -43,6 +43,12 @@ export function createApp() {
     res.json(await svc.leaderboard());
   });
 
+  // Giriş bağlantısı gönderilmeden önce kayıt formu (kimlik gerekmez)
+  api.post('/register/intent', async (req, res) => {
+    await svc.saveIntent(req.body);
+    res.status(204).end();
+  });
+
   api.post('/register', requireAuth, async (req, res) => {
     res.status(201).json(await svc.register(req.user, req.body));
   });
