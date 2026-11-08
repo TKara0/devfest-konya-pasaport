@@ -70,7 +70,7 @@ async function seed() {
     sessions: [
       { id: 's1', slot: '09:00', end: '09:50', hall: 'salon-1', title: 'Açılış' },
       { id: 's2', slot: '10:00', end: '10:45', hall: 'salon-1', title: 'Serverless' },
-      { id: 's3', slot: '10:00', end: '10:45', hall: 'salon-2', title: 'Flutter' },
+      { id: 's3', slot: '10:00', end: '10:45', hall: 'salon-2', title: 'Flutter', speaker: 'Ayşe K.', tag: 'MOBILE AI' },
     ],
     agenda: [
       { id: 'a1', start: '08:30', end: '09:00', hall: null, title: 'Kayıt', note: 'Kapıdan gir' },
@@ -113,6 +113,8 @@ test('config: salonlar, oturum bitişleri ve akış maddeleri gelir, kod gelmez'
   assert.deepEqual(r.json.sessions.map((s) => [s.id, s.slot, s.end, s.hall]), [
     ['s1', '09:00', '09:50', 'salon-1'], ['s2', '10:00', '10:45', 'salon-1'], ['s3', '10:00', '10:45', 'salon-2'],
   ]);
+  assert.deepEqual(r.json.sessions.map((s) => s.tag), [undefined, undefined, 'MOBILE AI'], 'etiket yalnızca tanımlı oturumda gelir');
+  assert.equal(r.json.sessions[2].speaker, 'Ayşe K.');
   assert.deepEqual(r.json.agenda, [
     { id: 'a1', start: '08:30', end: '09:00', hall: null, title: 'Kayıt', note: 'Kapıdan gir' },
     { id: 'a2', start: '12:00', end: '13:00', hall: null, title: 'Öğle arası' }, // hall yazılmamışsa null (tüm alan)

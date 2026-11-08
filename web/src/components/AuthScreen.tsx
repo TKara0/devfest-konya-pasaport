@@ -25,6 +25,8 @@ function linkError(e: unknown) {
 interface Props {
   /** Başlığın altında gösterilen etkinlik akışı kartı */
   nowCard?: ReactNode;
+  /** Etkinlik mekânı (config'ten); config gelmeden yalnızca tarih görünür */
+  venue?: string;
   /** Bağlantıyla giriş yapılmış ama pasaportu olmayan kullanıcının Gmail adresi */
   signedInEmail?: string | null;
   initialTab?: AuthTab;
@@ -32,7 +34,7 @@ interface Props {
   onRegistered: (me: Me) => void;
 }
 
-export function AuthScreen({ nowCard, signedInEmail, initialTab = 'giris', notice, onRegistered }: Props) {
+export function AuthScreen({ nowCard, venue, signedInEmail, initialTab = 'giris', notice, onRegistered }: Props) {
   const [tab, setTab] = useState<AuthTab>(signedInEmail ? 'kayit' : initialTab);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const pick = (t: AuthTab) => {
@@ -43,7 +45,7 @@ export function AuthScreen({ nowCard, signedInEmail, initialTab = 'giris', notic
   return (
     <div className="auth">
       <div>
-        <p className="eyebrow">21 Kasım · Sultan Alparslan Kültür Merkezi</p>
+        <p className="eyebrow">21 Kasım{venue && ` · ${venue}`}</p>
         <h1>Pasaportunu al, kodları topla, çekilişe gir.</h1>
         <p className="sub">Stantlardaki, oturumlardaki ve görevlerdeki 6 haneli kodları gir. Her kod çekiliş hakkına dönüşür.</p>
       </div>

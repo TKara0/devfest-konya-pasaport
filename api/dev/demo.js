@@ -42,15 +42,6 @@ const svc = await import('../src/service.js');
 
 /* ---------- Örnek etkinlik ---------- */
 const cfg = JSON.parse(readFileSync(join(here, '..', 'seed', 'event.example.json'), 'utf8'));
-const titles = [
-  'Açılış ve Keynote', 'Serverless ile ölçeklenmek', 'Flutter’da durum yönetimi', 'Gemini ile ajan geliştirme',
-  'Kubernetes’e ilk adım', 'Android’de performans', 'Veri hattı tasarımı', 'Web’de erişilebilirlik',
-  'Firebase ile hızlı MVP', 'Kariyer paneli', 'Açık kaynağa katkı',
-];
-cfg.sessions.forEach((s, i) => {
-  s.title = titles[i] || s.title;
-  s.speaker = 'Örnek konuşmacı';
-});
 await db.doc('config/event').set({ event: cfg.event, tasks: cfg.tasks, halls: cfg.halls, sessions: cfg.sessions, agenda: cfg.agenda, raffles: cfg.raffles });
 
 // Akılda kalsın diye sıralı kodlar: stantlar 1xxxxx, oyunlar 2xxxxx, oturumlar 3xxxxx
@@ -117,6 +108,6 @@ createApp().listen(port, () => {
   console.log('  Test kodları:');
   for (const [task, label, code] of rows) console.log(`    ${code}  ${task.padEnd(18)} ${label}`);
   console.log(`\n  Saatlik kodlar (${rot.map((t) => t.name).join(', ')}) için Görevli hesabıyla giriş yapıp Görevli sekmesine bak.`);
-  console.log('  Çakışma denemesi: Ayşe 11:30’da Gryffindor Salonu’nda (300003); 300004 girersen "Aynı anda 2 oturum" hatası alırsın.');
+  console.log('  Çakışma denemesi: Ayşe 11:30’da Gryffindor’da (300003); 300004 girersen "Aynı anda 2 oturum" hatası alırsın.');
   console.log('  Çekiliş: yonetici.demo@gmail.com ile giriş yap → Yönetim sekmesi ya da tam ekran sahne http://localhost:5173/#cekilis\n');
 });

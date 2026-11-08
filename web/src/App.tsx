@@ -202,6 +202,7 @@ function Main({ hash }: { hash: string }) {
       <AuthScreen
         key={`${authKey}-${user?.uid ?? 'anon'}`}
         nowCard={config && <NowCard config={config} />}
+        venue={config?.event.venue}
         initialTab={authTab}
         signedInEmail={phase === 'needsProfile' ? user?.email : null}
         notice={notice}

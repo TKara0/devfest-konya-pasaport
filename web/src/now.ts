@@ -37,6 +37,7 @@ export interface FlowItem {
   hall: string | null;
   title: string;
   speaker?: string;
+  tag?: string;
   note?: string;
 }
 
@@ -48,7 +49,7 @@ export function flowItems(c: FlowConfig): FlowItem[] {
   for (const s of c.sessions) {
     // eski seed'lerde end yoktur: bitişi başlangıca eşitle (hiçbir zaman "şu an" sayılmaz)
     const end = s.end ?? s.slot;
-    items.push({ id: s.id, kind: 'session', start: s.slot, end, startMin: toMinutes(s.slot), endMin: toMinutes(end), hall: s.hall, title: s.title, speaker: s.speaker });
+    items.push({ id: s.id, kind: 'session', start: s.slot, end, startMin: toMinutes(s.slot), endMin: toMinutes(end), hall: s.hall, title: s.title, speaker: s.speaker, tag: s.tag });
   }
   for (const a of c.agenda) {
     items.push({ id: a.id, kind: 'agenda', start: a.start, end: a.end, startMin: toMinutes(a.start), endMin: toMinutes(a.end), hall: a.hall, title: a.title, note: a.note });

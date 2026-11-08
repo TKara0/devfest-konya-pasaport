@@ -267,7 +267,7 @@ h3 { font-size: 16px; line-height: 1.25; }
 .slot-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .sess { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
 .sess-text { min-width: 0; }
-.sess .hall { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.sess .hall { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; color: var(--muted); } /* salon adı yazıldığı gibi: sayfa dili tr, büyük harfe çevirmek Gryffindor'u "GRYFFİNDOR" yapar */
 .sess h3 { font-size: 15px; margin-top: 3px; }
 .sess p { margin: 3px 0 0; font-size: 13px; color: var(--ink-2); }
 .sess .st { margin-left: auto; }
@@ -282,6 +282,14 @@ h3 { font-size: 16px; line-height: 1.25; }
 .sess.past { opacity: 0.55; }
 .sess.past.attended { opacity: 0.8; }
 .sess-live { letter-spacing: 0.06em; padding: 1px 8px; }
+
+/* Oturum etiketi: Gryffindor (1. salon) kırmızı, Slytherin (2. salon) yeşil */
+.tag {
+  display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; vertical-align: 2px; white-space: nowrap;
+  font: 800 10.5px/1.5 var(--f-body); letter-spacing: 0.06em; border: 1px solid transparent;
+}
+.tag-1 { background: rgba(127, 0, 17, 0.09); color: var(--red-700); border-color: rgba(127, 0, 17, 0.28); }
+.tag-2 { background: rgba(17, 80, 52, 0.1); color: var(--green); border-color: rgba(17, 80, 52, 0.3); }
 
 /* ---------- Şu an kartı ---------- */
 .shell > .now { margin-bottom: 20px; }
@@ -308,7 +316,7 @@ h3 { font-size: 16px; line-height: 1.25; }
 .now-common span { font-size: 13px; color: var(--brown-700); font-variant-numeric: tabular-nums; }
 .now-halls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px; }
 .now-hall { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; background: var(--paper-2); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.now-hall h3 { font-size: 13px; font-family: var(--f-body); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.now-hall h3 { font-size: 14px; font-family: var(--f-body); font-weight: 800; letter-spacing: 0.04em; color: var(--muted); }
 .now-cur { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: rgba(17, 80, 52, 0.09); box-shadow: inset 3px 0 0 var(--green); min-width: 0; }
 .now-cur.empty { background: transparent; box-shadow: inset 3px 0 0 var(--line-2); }
 .now-tag { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); }

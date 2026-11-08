@@ -2,12 +2,14 @@
  * Etkinlik akışı doğrulaması: salonlar (tam 2), oturumların `slot`/`end` saatleri ve oturum olmayan
  * `agenda` maddeleri. Saf fonksiyon; seed betiği ve testler kullanır. Hata → Error (Türkçe mesaj).
  *
+ * `tag` oturumlarda isteğe bağlı küçük etiket (en fazla 20 karakter, ör. "CLOUD AI").
  * `slot` oturumun başlangıç saatidir (paralel oturum kuralı buna bağlı). `hall: null` = "Tüm alan":
  * iki salonu birden kaplar, yani iki salondan herhangi biriyle zaman çakışamaz.
  */
 
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 const ID_RE = /^[a-z0-9-]+$/;
+const TAG_MAX = 20;
 
 export const toMinutes = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
 
@@ -35,6 +37,9 @@ export function validateSchedule(cfg) {
     if (hall !== null && !hallIds.has(hall)) throw new Error(`${label}: bilinmeyen salon "${hall}" (halls: ${[...hallIds].join(', ')})`);
     if (kind === 'oturum' && hall === null) throw new Error(`${label}: oturumun salonu belli olmalı`);
     if (kind === 'agenda' && !String(it.title || '').trim()) throw new Error(`${label}: title boş olamaz`);
+    if (it.tag !== undefined && (typeof it.tag !== 'string' || !it.tag.trim() || it.tag.length > TAG_MAX)) {
+      throw new Error(`${label}: tag boş olmayan en fazla ${TAG_MAX} karakterlik bir yazı olmalı`);
+    }
     items.push({ label, hall, start: toMinutes(start), end: toMinutes(it.end), text: `${start}-${it.end}` });
   };
   for (const s of cfg.sessions || []) add('oturum', s, s.slot);

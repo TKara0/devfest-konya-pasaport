@@ -30,7 +30,7 @@ Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapa
 | `yeni.demo@gmail.com` | Kaydı yok: kayıt akışını denemek için |
 | `203301001@ogr.selcuk.edu.tr` | Öğrenci maili: reddedildiğini görmek için |
 
-Kayıt ol sekmesinden istediğin başka bir Gmail ile yeni hesap da açabilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 11:30'da Gryffindor Salonu'nda (`300003`), `300004` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
+Kayıt ol sekmesinden istediğin başka bir Gmail ile yeni hesap da açabilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 11:30'da Gryffindor'da (`300003`), `300004` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
 
 `web/.env` içinde Firebase bilgisi yokken `cd web && npm run dev` de otomatik demo modunda açılır (API için kökte `npm run demo` gerekir).
 
@@ -120,8 +120,8 @@ python deploy.py etkinlik-gunu --kapat   # akşam: tekrar 0
 Etkinlikte **tam 2 salon** vardır. Sitenin en üstündeki **Şu an** kartı her salonda şu an ne olduğunu, ne kadar kaldığını ve sırada ne olduğunu gösterir; **Akış** sekmesi (`/#oturumlar`) tüm programı saat sırasıyla listeler. Her ikisi de `event.json`'dan gelir ve kod içermez (`/api/config`).
 
 ```json
-"halls": [ { "id": "salon-1", "name": "Gryffindor Salonu" }, { "id": "salon-2", "name": "Slytherin Salonu" } ],
-"sessions": [ { "id": "s02", "slot": "10:00", "end": "10:45", "hall": "salon-1", "title": "…", "speaker": "…" } ],
+"halls": [ { "id": "salon-1", "name": "Gryffindor" }, { "id": "salon-2", "name": "Slytherin" } ],
+"sessions": [ { "id": "s03", "slot": "11:30", "end": "12:00", "hall": "salon-1", "title": "…", "speaker": "…", "tag": "CLOUD AI" } ],
 "agenda": [
   { "id": "a01", "start": "08:30", "end": "09:00", "hall": null,       "title": "Kayıt ve karşılama" },
   { "id": "a04", "start": "16:30", "end": "17:15", "hall": "salon-1", "title": "Çekiliş ve kapanış", "note": "isteğe bağlı" }
@@ -134,11 +134,12 @@ Etkinlikte **tam 2 salon** vardır. Sitenin en üstündeki **Şu an** kartı her
 | `sessions[].slot` | Oturumun **başlangıç** saati (`SS:DD`). Paralel oturum kuralı (aynı saatte tek oturum) buna bağlıdır, saat değişirse katılım kayıtları da etkilenir |
 | `sessions[].end` | Bitiş saati, `slot`'tan sonra olmalı |
 | `sessions[].hall` | Salon id'si (`halls` içinden) |
+| `sessions[].tag` | İsteğe bağlı küçük etiket rozeti (en fazla 20 karakter). Akış sekmesinde ve Şu an kartında başlığın yanında görünür; ilk salonda kırmızı, ikincide yeşil tonlu. Yazıldığı gibi gösterilir |
 | `agenda[]` | Oturum olmayan maddeler: kod almaz, hak vermez, yalnızca gösterim içindir. `hall: null` = **Tüm alan** (iki salonu birden kaplar) |
 
 `npm run seed` şunları doğrular, biri tutmazsa hata verip çıkış kodu 1 ile durur: tam 2 salon, `SS:DD` saat biçimi, `end > başlangıç`, salon id'sinin `halls` içinde olması (agenda'da ya da `null`), tekrarlanan id (oturum + agenda birlikte) ve **aynı salonda zaman çakışması** (oturum + agenda birlikte; "Tüm alan" maddesi iki salonla da çakışamaz, uç uca gelen maddeler çakışma sayılmaz).
 
-Saatler her zaman **Europe/Istanbul** saatine göre okunur (cihazın saat dilimi önemli değil), tarih `event.date`'tir; kart 30 saniyede bir yenilenir. Etkinlik başlamadan "21 Kasım, 08:30'da başlıyoruz", bittikten sonra "Etkinlik sona erdi" görünür. Geliştirirken (`npm run demo`, `npm run dev`) adrese `?saat=10:40` eklemek "şu an"ı etkinlik gününün o saatine alır; bu parametre yayın derlemesinde yoktur.
+Saatler her zaman **Europe/Istanbul** saatine göre okunur (cihazın saat dilimi önemli değil), tarih `event.date`'tir; kart 30 saniyede bir yenilenir. Etkinlik başlamadan "21 Kasım, 10:00'da başlıyoruz", bittikten sonra "Etkinlik sona erdi" görünür. Geliştirirken (`npm run demo`, `npm run dev`) adrese `?saat=10:40` eklemek "şu an"ı etkinlik gününün o saatine alır; bu parametre yayın derlemesinde yoktur.
 
 ## Çekiliş
 

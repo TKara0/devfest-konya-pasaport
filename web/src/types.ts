@@ -32,6 +32,8 @@ export interface Session {
   hall: string;
   title: string;
   speaker?: string;
+  /** küçük etiket rozeti, ör. "CLOUD AI" */
+  tag?: string;
 }
 
 /** Oturum olmayan akış maddesi (kayıt, ara, öğle arası, çekiliş…). Kod almaz, hak vermez. */

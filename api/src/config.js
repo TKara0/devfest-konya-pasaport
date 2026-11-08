@@ -35,7 +35,7 @@ export async function publicConfig() {
       steps: type === 'static' ? (steps || []).map(({ id: sid, label }) => ({ id: sid, label })) : [],
     })),
     halls: c.halls.map(({ id, name }) => ({ id, name })),
-    sessions: c.sessions.map(({ id, slot, end, hall, title, speaker }) => ({ id, slot, end, hall, title, speaker })),
+    sessions: c.sessions.map(({ id, slot, end, hall, title, speaker, tag }) => ({ id, slot, end, hall, title, speaker, tag })),
     agenda: c.agenda.map(({ id, start, end, hall, title, note }) => ({ id, start, end, hall: hall ?? null, title, note })),
   };
 }

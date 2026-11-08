@@ -1,4 +1,5 @@
 import { Icon } from './Icon';
+import { Tag } from './Tag';
 import { useClock } from '../useClock';
 import { flowItems, statusOf, type FlowItem } from '../now';
 import { slotKey, type EventConfig, type Me } from '../types';
@@ -35,7 +36,7 @@ export function Sessions({ config, me }: { config: EventConfig; me: Me }) {
                 {items
                   .filter((i) => i.start === start)
                   .map((i) => (
-                    <Item key={i.id} item={i} hall={hallName(i.hall)} status={statusOf(i, clock, config.event.date)} joined={joined} />
+                    <Item key={i.id} item={i} hall={hallName(i.hall)} hallIndex={config.halls.findIndex((h) => h.id === i.hall)} status={statusOf(i, clock, config.event.date)} joined={joined} />
                   ))}
               </div>
             </div>
@@ -46,7 +47,7 @@ export function Sessions({ config, me }: { config: EventConfig; me: Me }) {
   );
 }
 
-function Item({ item, hall, status, joined }: { item: FlowItem; hall: string; status: ReturnType<typeof statusOf>; joined?: string }) {
+function Item({ item, hall, hallIndex, status, joined }: { item: FlowItem; hall: string; hallIndex: number; status: ReturnType<typeof statusOf>; joined?: string }) {
   const session = item.kind === 'session';
   const att = session && joined === item.id;
   const locked = session && !!joined && !att;
@@ -60,7 +61,10 @@ function Item({ item, hall, status, joined }: { item: FlowItem; hall: string; st
           {item.end !== item.start && `–${item.end}`}
           {status === 'live' && <span className="badge ok sess-live">Şu an</span>}
         </div>
-        <h3>{item.title}</h3>
+        <h3>
+          {item.title}
+          <Tag tag={item.tag} hallIndex={hallIndex} />
+        </h3>
         {item.speaker && <p>{item.speaker}</p>}
         {item.note && <p>{item.note}</p>}
         {locked && <div className="lock">Bu saatte diğer oturuma katıldın</div>}

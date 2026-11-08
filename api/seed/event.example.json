@@ -121,162 +121,30 @@
     }
   ],
   "halls": [
-    {
-      "id": "salon-1",
-      "name": "Gryffindor Salonu"
-    },
-    {
-      "id": "salon-2",
-      "name": "Slytherin Salonu"
-    }
+    { "id": "salon-1", "name": "Gryffindor" },
+    { "id": "salon-2", "name": "Slytherin" }
   ],
   "sessions": [
-    {
-      "id": "s01",
-      "slot": "10:00",
-      "end": "10:30",
-      "hall": "salon-1",
-      "title": "Açılış Konuşması"
-    },
-    {
-      "id": "s02",
-      "slot": "10:45",
-      "end": "11:15",
-      "hall": "salon-1",
-      "title": "Tek Agent'tan Agent Orkestrasyonuna",
-      "speaker": "Mert Çobanov"
-    },
-    {
-      "id": "s03",
-      "slot": "11:30",
-      "end": "12:00",
-      "hall": "salon-1",
-      "title": "Beyond Prompting: Agent Identity, Runtime and the Future of AI Systems",
-      "speaker": "Alper Sarı"
-    },
-    {
-      "id": "s04",
-      "slot": "11:30",
-      "end": "12:00",
-      "hall": "salon-2",
-      "title": "AI Review & Mobil Uygulamalarda On-Device AI",
-      "speaker": "Abdülkerim Karaman"
-    },
-    {
-      "id": "s05",
-      "slot": "12:15",
-      "end": "12:45",
-      "hall": "salon-1",
-      "title": "Navigating Modern DevOps: Basics, Career Roadmap, and the AI Evolution",
-      "speaker": "Çiğdem Kadakoğlu"
-    },
-    {
-      "id": "s06",
-      "slot": "12:15",
-      "end": "12:45",
-      "hall": "salon-2",
-      "title": "Beyond the Cloud: On-Device Web LLM Inference with LiteRT-LM",
-      "speaker": "Ege Kaan Işık"
-    },
-    {
-      "id": "s07",
-      "slot": "13:45",
-      "end": "14:15",
-      "hall": "salon-1",
-      "title": "Yapay Zekâ Verimliliği ve Güvenliği",
-      "speaker": "Buğra Ayan"
-    },
-    {
-      "id": "s08",
-      "slot": "13:45",
-      "end": "14:15",
-      "hall": "salon-2",
-      "title": "Building AI-Powered Android Apps with Supabase",
-      "speaker": "Safa Orhan"
-    },
-    {
-      "id": "s09",
-      "slot": "14:30",
-      "end": "15:00",
-      "hall": "salon-1",
-      "title": "Backyard Barista on Cloud Run",
-      "speaker": "Esra Kadah"
-    },
-    {
-      "id": "s10",
-      "slot": "14:30",
-      "end": "15:00",
-      "hall": "salon-2",
-      "title": "RPA 101: Automating the Future of Work",
-      "speaker": "Asude Şenözlüler"
-    },
-    {
-      "id": "s11",
-      "slot": "15:15",
-      "end": "15:45",
-      "hall": "salon-1",
-      "title": "Is Your Agent Actually Working? Evaluating AI Agents in Practice",
-      "speaker": "Omar Elcircevi"
-    }
+    { "id": "s01", "slot": "10:00", "end": "10:30", "hall": "salon-1", "title": "Açılış Konuşması" },
+    { "id": "s02", "slot": "10:45", "end": "11:15", "hall": "salon-1", "title": "Tek Agent'tan Agent Orkestrasyonuna", "speaker": "Mert Çobanov", "tag": "AI" },
+    { "id": "s03", "slot": "11:30", "end": "12:00", "hall": "salon-1", "title": "Beyond Prompting: Agent Identity, Runtime and the Future of AI Systems", "speaker": "Alper Sarı", "tag": "CLOUD AI" },
+    { "id": "s04", "slot": "11:30", "end": "12:00", "hall": "salon-2", "title": "AI Review & Mobil Uygulamalarda On-Device AI", "speaker": "Abdülkerim Karaman", "tag": "MOBILE AI" },
+    { "id": "s05", "slot": "12:15", "end": "12:45", "hall": "salon-1", "title": "Navigating Modern DevOps: Basics, Career Roadmap, and the AI Evolution", "speaker": "Çiğdem Kadakoğlu", "tag": "DEVOPS" },
+    { "id": "s06", "slot": "12:15", "end": "12:45", "hall": "salon-2", "title": "Beyond the Cloud: On-Device Web LLM Inference with LiteRT-LM", "speaker": "Ege Kaan Işık", "tag": "WEB AI" },
+    { "id": "s07", "slot": "13:45", "end": "14:15", "hall": "salon-1", "title": "Yapay Zekâ Verimliliği ve Güvenliği", "speaker": "Buğra Ayan" },
+    { "id": "s08", "slot": "13:45", "end": "14:15", "hall": "salon-2", "title": "Building AI-Powered Android Apps with Supabase", "speaker": "Safa Orhan", "tag": "ANDROID AI" },
+    { "id": "s09", "slot": "14:30", "end": "15:00", "hall": "salon-1", "title": "Backyard Barista on Cloud Run", "speaker": "Esra Kadah", "tag": "FLUTTER" },
+    { "id": "s10", "slot": "14:30", "end": "15:00", "hall": "salon-2", "title": "RPA 101: Automating the Future of Work", "speaker": "Asude Şenözlüler", "tag": "RPA" },
+    { "id": "s11", "slot": "15:15", "end": "15:45", "hall": "salon-1", "title": "Is Your Agent Actually Working? Evaluating AI Agents in Practice", "speaker": "Omar Elcircevi", "tag": "AI / ML" }
   ],
   "agenda": [
-    {
-      "id": "a01",
-      "start": "10:30",
-      "end": "10:45",
-      "hall": null,
-      "title": "Ara"
-    },
-    {
-      "id": "a02",
-      "start": "11:15",
-      "end": "11:30",
-      "hall": null,
-      "title": "Ara"
-    },
-    {
-      "id": "a03",
-      "start": "12:00",
-      "end": "12:15",
-      "hall": null,
-      "title": "Ara"
-    },
-    {
-      "id": "a04",
-      "start": "12:45",
-      "end": "13:45",
-      "hall": null,
-      "title": "Öğle Arası",
-      "note": "Stantları gezmek için iyi bir zaman"
-    },
-    {
-      "id": "a05",
-      "start": "14:15",
-      "end": "14:30",
-      "hall": null,
-      "title": "Ara"
-    },
-    {
-      "id": "a06",
-      "start": "15:00",
-      "end": "15:15",
-      "hall": null,
-      "title": "Ara"
-    },
-    {
-      "id": "a07",
-      "start": "15:45",
-      "end": "16:00",
-      "hall": null,
-      "title": "Ara"
-    },
-    {
-      "id": "a08",
-      "start": "16:00",
-      "end": "16:30",
-      "hall": null,
-      "title": "Networking",
-      "note": "Konuşmacılarla tanışma"
-    }
+    { "id": "ara-1", "start": "10:30", "end": "10:45", "hall": null, "title": "Ara" },
+    { "id": "ara-2", "start": "11:15", "end": "11:30", "hall": null, "title": "Ara" },
+    { "id": "ara-3", "start": "12:00", "end": "12:15", "hall": null, "title": "Ara" },
+    { "id": "ogle", "start": "12:45", "end": "13:45", "hall": null, "title": "Öğle Arası" },
+    { "id": "ara-4", "start": "14:15", "end": "14:30", "hall": null, "title": "Ara" },
+    { "id": "ara-5", "start": "15:00", "end": "15:15", "hall": null, "title": "Ara" },
+    { "id": "ara-6", "start": "15:45", "end": "16:00", "hall": null, "title": "Ara" },
+    { "id": "networking", "start": "16:00", "end": "16:30", "hall": null, "title": "Networking", "note": "Konuşmacılarla tanışma" }
   ]
 }

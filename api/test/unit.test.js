@@ -262,3 +262,23 @@ test('seed betiği geçersiz akışta veritabanına dokunmadan çıkış kodu 1 
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('akış: oturum etiketi (tag) isteğe bağlı, en fazla 20 karakter', () => {
+  const s = (tag) => sched({ sessions: [{ id: 's1', slot: '10:00', end: '10:45', hall: 'salon-1', title: 'A', ...(tag === undefined ? {} : { tag }) }], agenda: [] });
+  assert.doesNotThrow(() => validateSchedule(s(undefined)));
+  assert.doesNotThrow(() => validateSchedule(s('CLOUD AI')));
+  assert.doesNotThrow(() => validateSchedule(s('12345678901234567890')), '20 karakter geçer');
+  assert.throws(() => validateSchedule(s('123456789012345678901')), /tag.*en fazla 20/);
+  assert.throws(() => validateSchedule(s('')), /tag/);
+  assert.throws(() => validateSchedule(s('   ')), /tag/);
+  assert.throws(() => validateSchedule(s(5)), /tag/);
+});
+
+test('örnek akış: 2 salon, s01–s11, etiketler geçerli, kodlu oturum sırası değişmemiş', () => {
+  const ex = JSON.parse(readFileSync(new URL('../seed/event.example.json', import.meta.url), 'utf8'));
+  assert.deepEqual(ex.halls.map((h) => h.id), ['salon-1', 'salon-2']);
+  // demo kodları 300001–300011 bu sıraya bağlıdır
+  assert.deepEqual(ex.sessions.map((x) => x.id), Array.from({ length: 11 }, (_, i) => `s${String(i + 1).padStart(2, '0')}`));
+  for (const x of ex.sessions) assert.ok(!x.tag || x.tag.length <= 20, x.id);
+  assert.ok(!/Kongre/.test(ex.event.venue));
+});

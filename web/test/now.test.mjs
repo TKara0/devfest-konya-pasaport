@@ -159,3 +159,13 @@ test('gerçek akış (api/seed/event.example.json): öğle arasında tek şerit,
   assert.equal(s1050.halls[1].current, null, 'Slytherin 10:45-11:15 arası boş');
   assert.equal(nowState(rcfg, at('17:00')).phase, 'after');
 });
+
+test('gerçek akış: oturum etiketi akış maddesine geçer, ara ve öğle arasında yoktur', () => {
+  const real = JSON.parse(readFileSync(new URL('../../api/seed/event.example.json', import.meta.url), 'utf8'));
+  const items = flowItems({ halls: real.halls, sessions: real.sessions, agenda: real.agenda });
+  const tag = (id) => items.find((i) => i.id === id)?.tag;
+  assert.equal(tag('s03'), 'CLOUD AI');
+  assert.equal(tag('s01'), undefined);
+  assert.ok(items.filter((i) => i.kind === 'agenda').every((i) => !i.tag));
+  for (const i of items) assert.ok(!i.tag || i.tag.length <= 20, i.id);
+});

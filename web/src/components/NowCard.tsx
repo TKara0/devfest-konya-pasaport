@@ -1,4 +1,5 @@
 import { Icon } from './Icon';
+import { Tag } from './Tag';
 import { useClock } from '../useClock';
 import { atTime, dayLabel, hhmm, leftLabel, nowState, type FlowItem, type HallNow } from '../now';
 import { slotKey, type EventConfig, type Me } from '../types';
@@ -84,15 +85,15 @@ export function NowCard({ config, me, onAll }: Props) {
       )}
 
       <div className="now-halls">
-        {state.halls.map((hn) => (
-          <HallColumn key={hn.hall.id} hn={hn} me={me} />
+        {state.halls.map((hn, i) => (
+          <HallColumn key={hn.hall.id} hn={hn} index={i} me={me} />
         ))}
       </div>
     </section>
   );
 }
 
-function HallColumn({ hn, me }: { hn: HallNow; me?: Me | null }) {
+function HallColumn({ hn, index, me }: { hn: HallNow; index: number; me?: Me | null }) {
   const { hall, current, next, minutesLeft } = hn;
   return (
     <div className="now-hall">
@@ -100,7 +101,10 @@ function HallColumn({ hn, me }: { hn: HallNow; me?: Me | null }) {
       {current ? (
         <div className="now-cur">
           <span className="now-tag">Şu an</span>
-          <b className="now-title">{current.title}</b>
+          <b className="now-title">
+            {current.title}
+            <Tag tag={current.tag} hallIndex={index} />
+          </b>
           {current.speaker && <span className="now-sub">{current.speaker}</span>}
           {current.note && <span className="now-sub">{current.note}</span>}
           <span className="now-left">
