@@ -25,10 +25,21 @@ Henüz kesinleşmemiş konular. Karar verildikçe "Karar" sütunu doldurulur, il
 - Büyük ekranda animasyon; kazananın adı ve soyadı tam gösterilir.
 - Sonrası: Teslim edildi / Gelmedi işareti (Gelmedi → sıradaki yedek kazanan olur), kazananlar listesi indirilir, hatalı çekiliş iptal edilir (kayıtta kalır), kazanana sitede bildirim.
 
+## Yapılacaklar (sistem geliştirme)
+
+| İş | Durum |
+|---|---|
+| **Etkinlik akışı:** pasaport sayfasının en üstünde "Şu an" kartı (2 salon: her salonda şu an ne var, sırada ne var) + Oturumlar sekmesinde aralar dahil tüm akış | Akış Talha'dan bekleniyor; prompt hazır |
+| Kademeli hak sistemi (eşikler `event.json`'dan; sayılar sonra) | Sırada |
+| Yönetim panelinde kod girişini aç/kapat anahtarı | Sırada |
+| Yük testi betiği (yerelde, eşzamanlı kod girişi) | Sırada |
+| Yönetici: katılımcı arama ve yanlış kodu geri alma | İsteğe bağlı |
+
 ## Diğer
 
 | Konu | Durum |
 |---|---|
 | Gerçek görev/stant/oturum listesi (`api/seed/event.json`) | Bekleniyor |
+| Etkinlik akışı: saatler, 2 salonun adı, oturumlar + aralar/öğle/çekiliş/kapanış | Talha verecek |
 | KVKK aydınlatma metni (`web/public/kvkk.html`) | Bekleniyor |
 | Firebase yeni hesap kotası artışı (IP başına saatte 100) | Firebase'e talep açılacak |
