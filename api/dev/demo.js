@@ -51,7 +51,7 @@ cfg.sessions.forEach((s, i) => {
   s.title = titles[i] || s.title;
   s.speaker = 'Örnek konuşmacı';
 });
-await db.doc('config/event').set({ event: cfg.event, tasks: cfg.tasks, sessions: cfg.sessions, raffles: cfg.raffles });
+await db.doc('config/event').set({ event: cfg.event, tasks: cfg.tasks, halls: cfg.halls, sessions: cfg.sessions, agenda: cfg.agenda, raffles: cfg.raffles });
 
 // Akılda kalsın diye sıralı kodlar: stantlar 1xxxxx, oyunlar 2xxxxx, oturumlar 3xxxxx
 const codeOf = {};
@@ -68,7 +68,7 @@ const sessionTask = cfg.tasks.find((t) => t.type === 'session');
 cfg.sessions.forEach((s, i) => {
   const code = `3000${String(i + 1).padStart(2, '0')}`;
   codeOf[s.id] = code;
-  rows.push(['Oturum', `${s.slot} ${s.hall} · ${s.title}`, code]);
+  rows.push(['Oturum', `${s.slot} ${cfg.halls.find((h) => h.id === s.hall).name} · ${s.title}`, code]);
 });
 for (const t of cfg.tasks.filter((x) => x.type === 'static')) {
   for (const s of t.steps) await db.doc(`codes/${codeOf[s.id]}`).set({ kind: 'step', taskId: t.id, stepId: s.id, label: s.label });
@@ -117,6 +117,6 @@ createApp().listen(port, () => {
   console.log('  Test kodları:');
   for (const [task, label, code] of rows) console.log(`    ${code}  ${task.padEnd(18)} ${label}`);
   console.log(`\n  Saatlik kodlar (${rot.map((t) => t.name).join(', ')}) için Görevli hesabıyla giriş yapıp Görevli sekmesine bak.`);
-  console.log('  Çakışma denemesi: Ayşe 10:00’da Salon B’de (300003); 300002 girersen "Aynı anda 2 oturum" hatası alırsın.');
+  console.log('  Çakışma denemesi: Ayşe 10:00’da Salon 2’de (300003); 300002 girersen "Aynı anda 2 oturum" hatası alırsın.');
   console.log('  Çekiliş: yonetici.demo@gmail.com ile giriş yap → Yönetim sekmesi ya da tam ekran sahne http://localhost:5173/#cekilis\n');
 });

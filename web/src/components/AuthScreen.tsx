@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { api, ApiError } from '../api';
 import { isGmail, logOut, sendLoginLink } from '../firebase';
 import type { Me } from '../types';
@@ -23,6 +23,8 @@ function linkError(e: unknown) {
 }
 
 interface Props {
+  /** Başlığın altında gösterilen etkinlik akışı kartı */
+  nowCard?: ReactNode;
   /** Bağlantıyla giriş yapılmış ama pasaportu olmayan kullanıcının Gmail adresi */
   signedInEmail?: string | null;
   initialTab?: AuthTab;
@@ -30,7 +32,7 @@ interface Props {
   onRegistered: (me: Me) => void;
 }
 
-export function AuthScreen({ signedInEmail, initialTab = 'giris', notice, onRegistered }: Props) {
+export function AuthScreen({ nowCard, signedInEmail, initialTab = 'giris', notice, onRegistered }: Props) {
   const [tab, setTab] = useState<AuthTab>(signedInEmail ? 'kayit' : initialTab);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const pick = (t: AuthTab) => {
@@ -45,6 +47,8 @@ export function AuthScreen({ signedInEmail, initialTab = 'giris', notice, onRegi
         <h1>Pasaportunu al, kodları topla, çekilişe gir.</h1>
         <p className="sub">Stantlardaki, oturumlardaki ve görevlerdeki 6 haneli kodları gir. Her kod çekiliş hakkına dönüşür.</p>
       </div>
+
+      {nowCard}
 
       <div className="card auth-card">
         <div className="tabs" role="tablist" aria-label="Giriş ya da kayıt">

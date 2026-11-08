@@ -18,18 +18,39 @@ export interface Task {
   steps: Step[];
 }
 
+export interface Hall {
+  id: string;
+  name: string;
+}
+
 export interface Session {
   id: string;
-  slot: string; // "10:00"
+  slot: string; // başlangıç, "10:00"
+  /** bitiş "10:45" (eski seed'lerde yoktur) */
+  end?: string;
+  /** salon id'si (halls içinde) */
   hall: string;
   title: string;
   speaker?: string;
 }
 
+/** Oturum olmayan akış maddesi (kayıt, ara, öğle arası, çekiliş…). Kod almaz, hak vermez. */
+export interface AgendaItem {
+  id: string;
+  start: string;
+  end: string;
+  /** salon id'si ya da null (= tüm alan) */
+  hall: string | null;
+  title: string;
+  note?: string;
+}
+
 export interface EventConfig {
   event: { name?: string; date?: string; venue?: string };
   tasks: Task[];
+  halls: Hall[];
   sessions: Session[];
+  agenda: AgendaItem[];
 }
 
 export type Role = 'staff' | 'admin' | null;

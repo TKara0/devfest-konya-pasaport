@@ -1,15 +1,21 @@
 import { Icon } from './Icon';
-import { slotKey, type Me, type Session } from '../types';
+import { useClock } from '../useClock';
+import { flowItems, statusOf, type FlowItem } from '../now';
+import { slotKey, type EventConfig, type Me } from '../types';
 
-export function Sessions({ sessions, me }: { sessions: Session[]; me: Me }) {
-  const slots = [...new Set(sessions.map((s) => s.slot))].sort();
+/** Akış sekmesi: oturumlar ve oturum olmayan maddeler (kayıt, ara, öğle arası, çekiliş…) tek listede. */
+export function Sessions({ config, me }: { config: EventConfig; me: Me }) {
+  const clock = useClock(config.event.date);
+  const items = flowItems(config);
+  const starts = [...new Set(items.map((i) => i.start))];
+  const hallName = (id: string | null) => (id === null ? 'Tüm alan' : config.halls.find((h) => h.id === id)?.name ?? id);
 
   return (
     <section>
       <div className="section-head page-head">
         <div>
           <p className="eyebrow">Program</p>
-          <h1>Oturumlar</h1>
+          <h1>Akış</h1>
           <p className="sub">
             Aynı saatteki paralel oturumlardan yalnızca birine katılabilirsin. Oturum sonunda konuşmacının gösterdiği kodu
             Pasaport sekmesinde gir.
@@ -17,37 +23,49 @@ export function Sessions({ sessions, me }: { sessions: Session[]; me: Me }) {
         </div>
       </div>
 
-      {slots.length === 0 && <p className="muted">Program henüz yayınlanmadı.</p>}
+      {items.length === 0 && <p className="muted">Program henüz yayınlanmadı.</p>}
 
       <div className="slots">
-        {slots.map((slot) => {
-          const attended = me.sessions[slotKey(slot)];
+        {starts.map((start) => {
+          const joined = me.sessions[slotKey(start)];
           return (
-            <div key={slot} className="slot">
-              <time>{slot}</time>
+            <div key={start} className="slot">
+              <time>{start}</time>
               <div className="slot-row">
-                {sessions
-                  .filter((s) => s.slot === slot)
-                  .map((s) => {
-                    const att = attended === s.id;
-                    const locked = !!attended && !att;
-                    return (
-                      <div key={s.id} className={`sess${att ? ' attended' : ''}${locked ? ' locked' : ''}`}>
-                        <div className="sess-text">
-                          <div className="hall">{s.hall}</div>
-                          <h3>{s.title}</h3>
-                          {s.speaker && <p>{s.speaker}</p>}
-                          {locked && <div className="lock">Bu saatte diğer oturuma katıldın</div>}
-                        </div>
-                        <span className={`stamp st${att ? ' on' : ''}`}>{att && <Icon name="check" />}</span>
-                      </div>
-                    );
-                  })}
+                {items
+                  .filter((i) => i.start === start)
+                  .map((i) => (
+                    <Item key={i.id} item={i} hall={hallName(i.hall)} status={statusOf(i, clock, config.event.date)} joined={joined} />
+                  ))}
               </div>
             </div>
           );
         })}
       </div>
     </section>
+  );
+}
+
+function Item({ item, hall, status, joined }: { item: FlowItem; hall: string; status: ReturnType<typeof statusOf>; joined?: string }) {
+  const session = item.kind === 'session';
+  const att = session && joined === item.id;
+  const locked = session && !!joined && !att;
+  const cls = ['sess', item.hall === null && 'all', status === 'live' && 'live', status === 'past' && 'past', att && 'attended', locked && 'locked'];
+
+  return (
+    <div className={cls.filter(Boolean).join(' ')}>
+      <div className="sess-text">
+        <div className="hall">
+          {hall} · {item.start}
+          {item.end !== item.start && `–${item.end}`}
+          {status === 'live' && <span className="badge ok sess-live">Şu an</span>}
+        </div>
+        <h3>{item.title}</h3>
+        {item.speaker && <p>{item.speaker}</p>}
+        {item.note && <p>{item.note}</p>}
+        {locked && <div className="lock">Bu saatte diğer oturuma katıldın</div>}
+      </div>
+      {session && <span className={`stamp st${att ? ' on' : ''}`}>{att && <Icon name="check" />}</span>}
+    </div>
   );
 }

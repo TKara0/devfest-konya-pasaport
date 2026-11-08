@@ -10,5 +10,6 @@ ui-debug.log*
 
 # Gerçek etkinlik verisi ve basılacak kod listesi repoya girmez
 api/seed/event.json
+api/seed/event.json.bak
 api/seed/codes-print.csv
 *.tsbuildinfo

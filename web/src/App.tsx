@@ -10,6 +10,7 @@ import { CodeEntry } from './components/CodeEntry';
 import { TaskGrid } from './components/TaskGrid';
 import { FullBoard, MiniBoard, TicketCard } from './components/Leaderboard';
 import { Sessions } from './components/Sessions';
+import { NowCard } from './components/NowCard';
 import { Staff } from './components/Staff';
 import { Admin } from './components/Admin';
 import { BigScreen } from './components/BigScreen';
@@ -200,6 +201,7 @@ function Main({ hash }: { hash: string }) {
     body = (
       <AuthScreen
         key={`${authKey}-${user?.uid ?? 'anon'}`}
+        nowCard={config && <NowCard config={config} />}
         initialTab={authTab}
         signedInEmail={phase === 'needsProfile' ? user?.email : null}
         notice={notice}
@@ -212,13 +214,14 @@ function Main({ hash }: { hash: string }) {
       />
     );
   } else if (phase === 'ready' && me && config) {
-    if (view === 'oturumlar') body = <Sessions sessions={config.sessions} me={me} />;
+    if (view === 'oturumlar') body = <Sessions config={config} me={me} />;
     else if (view === 'siralama') body = <FullBoard board={board} me={me} error={boardErr} />;
     else if (view === 'gorevli') body = <Staff />;
     else if (view === 'yonetim') body = <Admin />;
     else
       body = (
         <>
+          <NowCard config={config} me={me} onAll={() => nav('oturumlar')} />
           {me.wins && me.wins.length > 0 && <Wins wins={me.wins} />}
           <div className="grid">
             <div className="col">

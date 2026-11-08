@@ -66,10 +66,15 @@ async function seed() {
       { id: 'session', name: 'Oturumlar', type: 'session', reward: 1 },
       LINKEDIN,
     ],
+    halls: [{ id: 'salon-1', name: 'Salon 1' }, { id: 'salon-2', name: 'Salon 2' }],
     sessions: [
-      { id: 's1', slot: '09:00', hall: 'Ana Salon', title: 'Açılış' },
-      { id: 's2', slot: '10:00', hall: 'Salon A', title: 'Serverless' },
-      { id: 's3', slot: '10:00', hall: 'Salon B', title: 'Flutter' },
+      { id: 's1', slot: '09:00', end: '09:50', hall: 'salon-1', title: 'Açılış' },
+      { id: 's2', slot: '10:00', end: '10:45', hall: 'salon-1', title: 'Serverless' },
+      { id: 's3', slot: '10:00', end: '10:45', hall: 'salon-2', title: 'Flutter' },
+    ],
+    agenda: [
+      { id: 'a1', start: '08:30', end: '09:00', hall: null, title: 'Kayıt', note: 'Kapıdan gir' },
+      { id: 'a2', start: '12:00', end: '13:00', title: 'Öğle arası' },
     ],
   });
   await db.doc('codes/111111').set({ kind: 'step', taskId: 'stand', stepId: 'st-a', label: 'Stant A' });
@@ -99,6 +104,36 @@ test('config istemciye kod sızdırmaz', async () => {
   assert.equal(r.json.tasks.find((t) => t.id === 'session').total, 2); // 2 farklı saat dilimi
   assert.equal(r.json.tasks.find((t) => t.id === 'stand').total, 2);
   assert.match(r.headers.get('cache-control'), /s-maxage/);
+});
+
+test('config: salonlar, oturum bitişleri ve akış maddeleri gelir, kod gelmez', async () => {
+  await seed();
+  const r = await call('GET', '/config');
+  assert.deepEqual(r.json.halls, [{ id: 'salon-1', name: 'Salon 1' }, { id: 'salon-2', name: 'Salon 2' }]);
+  assert.deepEqual(r.json.sessions.map((s) => [s.id, s.slot, s.end, s.hall]), [
+    ['s1', '09:00', '09:50', 'salon-1'], ['s2', '10:00', '10:45', 'salon-1'], ['s3', '10:00', '10:45', 'salon-2'],
+  ]);
+  assert.deepEqual(r.json.agenda, [
+    { id: 'a1', start: '08:30', end: '09:00', hall: null, title: 'Kayıt', note: 'Kapıdan gir' },
+    { id: 'a2', start: '12:00', end: '13:00', hall: null, title: 'Öğle arası' }, // hall yazılmamışsa null (tüm alan)
+  ]);
+  assert.equal(r.json.tasks.find((t) => t.id === 'session').total, 2, 'slot sayısı agenda maddelerinden etkilenmez');
+  // sabit kodlar yanıtta hiçbir yerde geçmez
+  for (const code of ['111111', '222222', '309000', '310001', '310002']) assert.ok(!r.text.includes(code), code);
+  assert.ok(!/"code"|sessionId|stepId/.test(r.text));
+});
+
+test('config: eski biçimli (salonsuz) veri hâlâ okunur', async () => {
+  await db.doc('config/event').set({
+    event: {}, tasks: [{ id: 'session', name: 'Oturumlar', type: 'session', reward: 1 }],
+    sessions: [{ id: 's1', slot: '09:00', hall: 'Ana Salon', title: 'X' }],
+  });
+  fresh();
+  const r = await call('GET', '/config');
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.json.halls, []);
+  assert.deepEqual(r.json.agenda, []);
+  await seed();
 });
 
 test('kimlik doğrulama ve kayıt (kimlik = Gmail)', async () => {

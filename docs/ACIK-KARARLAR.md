@@ -29,7 +29,7 @@ Henüz kesinleşmemiş konular. Karar verildikçe "Karar" sütunu doldurulur, il
 
 | İş | Durum |
 |---|---|
-| **Etkinlik akışı:** pasaport sayfasının en üstünde "Şu an" kartı (2 salon: her salonda şu an ne var, sırada ne var) + Oturumlar sekmesinde aralar dahil tüm akış | Akış Talha'dan bekleniyor; prompt hazır |
+| **Etkinlik akışı:** pasaport sayfasının en üstünde "Şu an" kartı (2 salon: her salonda şu an ne var, sırada ne var) + Oturumlar sekmesinde aralar dahil tüm akış | Yapıldı (örnek veriyle; gerçek akış verisi aşağıda bekleniyor) |
 | Kademeli hak sistemi (eşikler `event.json`'dan; sayılar sonra) | Sırada |
 | Yönetim panelinde kod girişini aç/kapat anahtarı | Sırada |
 | Yük testi betiği (yerelde, eşzamanlı kod girişi) | Sırada |

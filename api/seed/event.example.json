@@ -74,17 +74,27 @@
       "rewardLabel": "2 hak"
     }
   ],
+  "halls": [
+    { "id": "salon-1", "name": "Salon 1" },
+    { "id": "salon-2", "name": "Salon 2" }
+  ],
   "sessions": [
-    { "id": "s01", "slot": "09:00", "hall": "Ana Salon", "title": "Açılış ve Keynote", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s02", "slot": "10:00", "hall": "Salon A", "title": "Oturum 2", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s03", "slot": "10:00", "hall": "Salon B", "title": "Oturum 3", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s04", "slot": "11:00", "hall": "Salon A", "title": "Oturum 4", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s05", "slot": "11:00", "hall": "Salon B", "title": "Oturum 5", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s06", "slot": "13:30", "hall": "Salon A", "title": "Oturum 6", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s07", "slot": "13:30", "hall": "Salon B", "title": "Oturum 7", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s08", "slot": "14:30", "hall": "Salon A", "title": "Oturum 8", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s09", "slot": "14:30", "hall": "Salon B", "title": "Oturum 9", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s10", "slot": "15:30", "hall": "Salon A", "title": "Oturum 10", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s11", "slot": "15:30", "hall": "Salon B", "title": "Oturum 11", "speaker": "Konuşmacı belirlenecek" }
+    { "id": "s01", "slot": "09:00", "end": "09:50", "hall": "salon-1", "title": "Açılış ve Keynote", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s02", "slot": "10:00", "end": "10:45", "hall": "salon-1", "title": "Oturum 2", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s03", "slot": "10:00", "end": "10:45", "hall": "salon-2", "title": "Oturum 3", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s04", "slot": "11:00", "end": "11:45", "hall": "salon-1", "title": "Oturum 4", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s05", "slot": "11:00", "end": "11:45", "hall": "salon-2", "title": "Oturum 5", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s06", "slot": "13:30", "end": "14:15", "hall": "salon-1", "title": "Oturum 6", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s07", "slot": "13:30", "end": "14:15", "hall": "salon-2", "title": "Oturum 7", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s08", "slot": "14:30", "end": "15:15", "hall": "salon-1", "title": "Oturum 8", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s09", "slot": "14:30", "end": "15:15", "hall": "salon-2", "title": "Oturum 9", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s10", "slot": "15:30", "end": "16:15", "hall": "salon-1", "title": "Oturum 10", "speaker": "Konuşmacı belirlenecek" },
+    { "id": "s11", "slot": "15:30", "end": "16:15", "hall": "salon-2", "title": "Oturum 11", "speaker": "Konuşmacı belirlenecek" }
+  ],
+  "agenda": [
+    { "id": "a01", "start": "08:30", "end": "09:00", "hall": null, "title": "Kayıt ve karşılama" },
+    { "id": "a02", "start": "10:45", "end": "11:00", "hall": null, "title": "Kahve arası" },
+    { "id": "a03", "start": "12:00", "end": "13:30", "hall": null, "title": "Öğle arası", "note": "Stantları gezmek için iyi bir zaman" },
+    { "id": "a04", "start": "16:30", "end": "17:15", "hall": "salon-1", "title": "Çekiliş ve kapanış" }
   ]
 }

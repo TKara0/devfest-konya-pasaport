@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { db } from '../src/firebase.js';
 import { validateRaffles } from '../src/raffle.js';
+import { validateSchedule } from '../src/schedule.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const seedDir = join(here, '..', 'seed');
@@ -56,6 +57,15 @@ try {
 } catch (e) {
   fail(`raffles: ${e.message}`);
 }
+try {
+  validateSchedule(cfg);
+} catch (e) {
+  fail(`akış: ${e.message}`);
+}
+// agenda maddesi kod almaz ama id'si görev/adım/oturum id'leriyle karışmasın
+for (const a of cfg.agenda || []) {
+  if (ids.has(a.id)) fail(`Tekrarlanan id: ${a.id}`);
+}
 
 /* ---------- kodlar ---------- */
 const existing = await db.collection('codes').get();
@@ -93,7 +103,7 @@ const stale = existing.docs.filter((d) => !wantedCodes.has(d.id));
 
 /* ---------- yaz ---------- */
 const ops = [];
-ops.push((b) => b.set(db.doc('config/event'), { event: cfg.event || {}, tasks: cfg.tasks, sessions: cfg.sessions || [], raffles: cfg.raffles || [], updatedAt: Date.now() }));
+ops.push((b) => b.set(db.doc('config/event'), { event: cfg.event || {}, tasks: cfg.tasks, halls: cfg.halls, sessions: cfg.sessions || [], agenda: cfg.agenda || [], raffles: cfg.raffles || [], updatedAt: Date.now() }));
 for (const w of wanted) ops.push((b) => b.set(db.doc(`codes/${w.code}`), w.data));
 for (const d of stale) ops.push((b) => b.delete(d.ref));
 
@@ -116,13 +126,13 @@ for (const w of wanted) {
   const d = w.data;
   const task = cfg.tasks.find((t) => t.id === d.taskId);
   const sess = d.kind === 'session' ? cfg.sessions.find((s) => s.id === d.sessionId) : null;
-  rows.push([task.name, d.label, sess?.slot || '', sess?.hall || '', w.code]);
+  rows.push([task.name, d.label, sess?.slot || '', cfg.halls.find((h) => h.id === sess?.hall)?.name || '', w.code]);
 }
 const csv = '﻿' + rows.map((r) => r.map((v) => (/[",]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v)).join(',')).join('\r\n');
 writeFileSync(join(seedDir, 'codes-print.csv'), csv);
 
 const fresh = wanted.filter((w) => !codeByKey.has(w.data.stepId || w.data.sessionId)).length;
-console.log(`✓ ${cfg.tasks.length} görev, ${(cfg.sessions || []).length} oturum yazıldı.`);
+console.log(`✓ ${cfg.tasks.length} görev, ${(cfg.sessions || []).length} oturum, ${(cfg.agenda || []).length} akış maddesi, 2 salon yazıldı.`);
 console.log(`✓ ${wanted.length} sabit kod (${fresh} yeni, ${wanted.length - fresh} korundu), ${stale.length} eski kod silindi.`);
 console.log(`✓ ${(cfg.raffles || []).length} çekiliş kategorisi.`);
 console.log(`✓ ${roles.size} görevli/yönetici rolü.`);

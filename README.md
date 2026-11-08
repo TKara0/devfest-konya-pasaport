@@ -30,7 +30,7 @@ Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapa
 | `yeni.demo@gmail.com` | Kaydı yok: kayıt akışını denemek için |
 | `203301001@ogr.selcuk.edu.tr` | Öğrenci maili: reddedildiğini görmek için |
 
-Kayıt ol sekmesinden istediğin başka bir Gmail ile yeni hesap da açabilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 10:00'da Salon B'de (`300003`), `300002` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
+Kayıt ol sekmesinden istediğin başka bir Gmail ile yeni hesap da açabilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 10:00'da Salon 2'de (`300003`), `300002` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
 
 `web/.env` içinde Firebase bilgisi yokken `cd web && npm run dev` de otomatik demo modunda açılır (API için kökte `npm run demo` gerekir).
 
@@ -107,13 +107,38 @@ python deploy.py etkinlik-gunu --kapat   # akşam: tekrar 0
 
 | Adres | İçerik |
 |---|---|
-| `/` | Pasaport: kod girişi, görev ilerlemesi, hak sayısı, ilk 5 |
-| `/#oturumlar` | Oturum programı, katılınan/kilitlenen oturumlar |
+| `/` | Pasaport: en üstte canlı akış (**Şu an** kartı), kod girişi, görev ilerlemesi, hak sayısı, ilk 5. Kart giriş/kayıt ekranında da başlığın altında görünür |
+| `/#oturumlar` | **Akış** sekmesi: oturumlar ve genel maddeler (kayıt, ara, öğle arası, çekiliş) tek listede, katılınan/kilitlenen oturumlar |
 | `/#siralama` | Top 20 |
 | `/#gorevli` | Dönen kodlar + katılımcı adına kod girme |
 | `/#yonetim` | İstatistik, çekiliş (yapma, geçmiş, teslim durumu, iptal) ve çekiliş dosyaları |
 | `/#cekilis` | Projektör için tam ekran çekiliş sahnesi (yalnızca yönetici; değilse pasaporta yönlendirir) |
 | `/#ekran` | Salon ekranı için tam ekran Top 20 (giriş gerekmez) |
+
+## Etkinlik akışı
+
+Etkinlikte **tam 2 salon** vardır. Sitenin en üstündeki **Şu an** kartı her salonda şu an ne olduğunu, ne kadar kaldığını ve sırada ne olduğunu gösterir; **Akış** sekmesi (`/#oturumlar`) tüm programı saat sırasıyla listeler. Her ikisi de `event.json`'dan gelir ve kod içermez (`/api/config`).
+
+```json
+"halls": [ { "id": "salon-1", "name": "Salon 1" }, { "id": "salon-2", "name": "Salon 2" } ],
+"sessions": [ { "id": "s02", "slot": "10:00", "end": "10:45", "hall": "salon-1", "title": "…", "speaker": "…" } ],
+"agenda": [
+  { "id": "a01", "start": "08:30", "end": "09:00", "hall": null,       "title": "Kayıt ve karşılama" },
+  { "id": "a04", "start": "16:30", "end": "17:15", "hall": "salon-1", "title": "Çekiliş ve kapanış", "note": "isteğe bağlı" }
+]
+```
+
+| Alan | Anlamı |
+|---|---|
+| `halls` | Tam 2 salon: `id` (küçük harf/rakam/tire) ve `name` |
+| `sessions[].slot` | Oturumun **başlangıç** saati (`SS:DD`). Paralel oturum kuralı (aynı saatte tek oturum) buna bağlıdır, saat değişirse katılım kayıtları da etkilenir |
+| `sessions[].end` | Bitiş saati, `slot`'tan sonra olmalı |
+| `sessions[].hall` | Salon id'si (`halls` içinden) |
+| `agenda[]` | Oturum olmayan maddeler: kod almaz, hak vermez, yalnızca gösterim içindir. `hall: null` = **Tüm alan** (iki salonu birden kaplar) |
+
+`npm run seed` şunları doğrular, biri tutmazsa hata verip çıkış kodu 1 ile durur: tam 2 salon, `SS:DD` saat biçimi, `end > başlangıç`, salon id'sinin `halls` içinde olması (agenda'da ya da `null`), tekrarlanan id (oturum + agenda birlikte) ve **aynı salonda zaman çakışması** (oturum + agenda birlikte; "Tüm alan" maddesi iki salonla da çakışamaz, uç uca gelen maddeler çakışma sayılmaz).
+
+Saatler her zaman **Europe/Istanbul** saatine göre okunur (cihazın saat dilimi önemli değil), tarih `event.date`'tir; kart 30 saniyede bir yenilenir. Etkinlik başlamadan "21 Kasım, 08:30'da başlıyoruz", bittikten sonra "Etkinlik sona erdi" görünür. Geliştirirken (`npm run demo`, `npm run dev`) adrese `?saat=10:40` eklemek "şu an"ı etkinlik gününün o saatine alır; bu parametre yayın derlemesinde yoktur.
 
 ## Çekiliş
 
@@ -190,10 +215,14 @@ VITE_USE_EMULATOR=true VITE_FIREBASE_PROJECT_ID=demo-pasaport npm run dev
 
 ```bash
 cd api
-npm test           # saatlik kod, telefon/kayıt doğrulama, çekiliş şansı ve ağırlıklı/iadesiz seçim
+npm test           # saatlik kod, telefon/kayıt doğrulama, çekiliş şansı ve ağırlıklı/iadesiz seçim, akış doğrulaması (seed)
 npm run test:e2e   # API uçtan uca: kayıt, kayıt niyeti, tekrar kod, oturum çakışması, süresi dolan kod,
                    # eşzamanlı istek, deneme sınırı, sıralama, roller, CSV dışa aktarımı; çekiliş: ağırlıklı seçim,
-                   # havuz dışı kuralları, yedek/gelmedi/iptal, eşzamanlı çekiliş kilidi, çekiliş CSV'si, /api/me wins
+                   # havuz dışı kuralları, yedek/gelmedi/iptal, eşzamanlı çekiliş kilidi, çekiliş CSV'si, /api/me wins; /api/config'te salon/akış alanları ve kod sızmaması
+```
+
+```bash
+cd web && npm test # "Şu an" hesabı (src/now.ts): başlamadan önce, iki salon, boş salon, tüm alan, bitiş, gece yarısı/saat dilimi
 ```
 
 `test:e2e` gerçek Express uygulamasını bellek içi bir Firestore taklidiyle çalıştırır, emülatör gerektirmez.

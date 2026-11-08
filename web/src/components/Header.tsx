@@ -6,7 +6,7 @@ export type View = 'pasaport' | 'oturumlar' | 'siralama' | 'gorevli' | 'yonetim'
 
 const TABS: { id: View; label: string; icon: string; role?: 'staff' | 'admin' }[] = [
   { id: 'pasaport', label: 'Pasaport', icon: 'passport' },
-  { id: 'oturumlar', label: 'Oturumlar', icon: 'hall' },
+  { id: 'oturumlar', label: 'Akış', icon: 'clock' },
   { id: 'siralama', label: 'Sıralama', icon: 'trophy' },
   { id: 'gorevli', label: 'Görevli', icon: 'key', role: 'staff' },
   { id: 'yonetim', label: 'Yönetim', icon: 'chart', role: 'admin' },

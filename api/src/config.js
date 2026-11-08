@@ -8,7 +8,7 @@ let cfgCache = { at: 0, value: null };
 const roleCache = new Map();
 
 /**
- * Etkinlik yapılandırması (görevler, adımlar, oturumlar, çekiliş kategorileri). Kodlar burada YOK;
+ * Etkinlik yapılandırması (görevler, adımlar, salonlar, oturumlar, akış maddeleri, çekiliş kategorileri). Kodlar burada YOK;
  * onlar ayrı `codes` koleksiyonunda durur. `npm run seed` ile yazılır.
  */
 export async function getConfig() {
@@ -21,7 +21,7 @@ export async function getConfig() {
     ...t,
     total: t.type === 'session' ? slots.length : t.type === 'rotating' ? 1 : (t.steps || []).length,
   }));
-  cfgCache = { at: Date.now(), value: { event: raw.event || {}, tasks, sessions: raw.sessions || [], slots, raffles: raw.raffles || [] } };
+  cfgCache = { at: Date.now(), value: { event: raw.event || {}, tasks, halls: raw.halls || [], sessions: raw.sessions || [], agenda: raw.agenda || [], slots, raffles: raw.raffles || [] } };
   return cfgCache.value;
 }
 
@@ -34,7 +34,9 @@ export async function publicConfig() {
       id, name, desc, icon, type, reward, rewardLabel, rotateMinutes, total,
       steps: type === 'static' ? (steps || []).map(({ id: sid, label }) => ({ id: sid, label })) : [],
     })),
-    sessions: c.sessions.map(({ id, slot, hall, title, speaker }) => ({ id, slot, hall, title, speaker })),
+    halls: c.halls.map(({ id, name }) => ({ id, name })),
+    sessions: c.sessions.map(({ id, slot, end, hall, title, speaker }) => ({ id, slot, end, hall, title, speaker })),
+    agenda: c.agenda.map(({ id, start, end, hall, title, note }) => ({ id, start, end, hall: hall ?? null, title, note })),
   };
 }
 
