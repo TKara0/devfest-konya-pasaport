@@ -30,7 +30,7 @@ Tarayıcıda **http://localhost:5173** açılır. API bellekte çalışır, kapa
 | `yeni.demo@gmail.com` | Kaydı yok: kayıt akışını denemek için |
 | `203301001@ogr.selcuk.edu.tr` | Öğrenci maili: reddedildiğini görmek için |
 
-Kayıt ol sekmesinden istediğin başka bir Gmail ile yeni hesap da açabilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 10:00'da Salon 2'de (`300003`), `300002` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
+Kayıt ol sekmesinden istediğin başka bir Gmail ile yeni hesap da açabilirsin. Test kodları terminalde listelenir: stant `100001–100006`, oyun `200001–200003`, oturum `300001–300011`. Ayşe 11:30'da Gryffindor Salonu'nda (`300003`), `300004` girersen “Aynı anda 2 oturuma katılamazsınız” hatası çıkar.
 
 `web/.env` içinde Firebase bilgisi yokken `cd web && npm run dev` de otomatik demo modunda açılır (API için kökte `npm run demo` gerekir).
 
@@ -120,7 +120,7 @@ python deploy.py etkinlik-gunu --kapat   # akşam: tekrar 0
 Etkinlikte **tam 2 salon** vardır. Sitenin en üstündeki **Şu an** kartı her salonda şu an ne olduğunu, ne kadar kaldığını ve sırada ne olduğunu gösterir; **Akış** sekmesi (`/#oturumlar`) tüm programı saat sırasıyla listeler. Her ikisi de `event.json`'dan gelir ve kod içermez (`/api/config`).
 
 ```json
-"halls": [ { "id": "salon-1", "name": "Salon 1" }, { "id": "salon-2", "name": "Salon 2" } ],
+"halls": [ { "id": "salon-1", "name": "Gryffindor Salonu" }, { "id": "salon-2", "name": "Slytherin Salonu" } ],
 "sessions": [ { "id": "s02", "slot": "10:00", "end": "10:45", "hall": "salon-1", "title": "…", "speaker": "…" } ],
 "agenda": [
   { "id": "a01", "start": "08:30", "end": "09:00", "hall": null,       "title": "Kayıt ve karşılama" },

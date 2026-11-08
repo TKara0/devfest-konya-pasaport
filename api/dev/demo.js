@@ -104,7 +104,7 @@ for (const [i, [f, l, n]] of people.entries()) {
 
 // Oturum çekilişi de denenebilsin: örnek katılımcılar farklı sayıda oturuma katılmış olsun
 // (her saat diliminden yalnızca biri, aynı anda iki oturum çakışması olmasın)
-const sessionPerSlot = ['s01', 's02', 's04', 's06', 's08', 's10'];
+const sessionPerSlot = ['s01', 's02', 's04', 's06', 's08', 's10', 's11'];
 for (let i = 0; i < people.length; i++) {
   for (const sid of sessionPerSlot.slice(0, i % (sessionPerSlot.length + 1))) await svc.redeem(`demo-ornek-${i}`, codeOf[sid]);
 }
@@ -117,6 +117,6 @@ createApp().listen(port, () => {
   console.log('  Test kodları:');
   for (const [task, label, code] of rows) console.log(`    ${code}  ${task.padEnd(18)} ${label}`);
   console.log(`\n  Saatlik kodlar (${rot.map((t) => t.name).join(', ')}) için Görevli hesabıyla giriş yapıp Görevli sekmesine bak.`);
-  console.log('  Çakışma denemesi: Ayşe 10:00’da Salon 2’de (300003); 300002 girersen "Aynı anda 2 oturum" hatası alırsın.');
+  console.log('  Çakışma denemesi: Ayşe 11:30’da Gryffindor Salonu’nda (300003); 300004 girersen "Aynı anda 2 oturum" hatası alırsın.');
   console.log('  Çekiliş: yonetici.demo@gmail.com ile giriş yap → Yönetim sekmesi ya da tam ekran sahne http://localhost:5173/#cekilis\n');
 });

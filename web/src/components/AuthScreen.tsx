@@ -43,7 +43,7 @@ export function AuthScreen({ nowCard, signedInEmail, initialTab = 'giris', notic
   return (
     <div className="auth">
       <div>
-        <p className="eyebrow">21 Kasım · Sultan Alparslan Kongre Merkezi</p>
+        <p className="eyebrow">21 Kasım · Sultan Alparslan Kültür Merkezi</p>
         <h1>Pasaportunu al, kodları topla, çekilişe gir.</h1>
         <p className="sub">Stantlardaki, oturumlardaki ve görevlerdeki 6 haneli kodları gir. Her kod çekiliş hakkına dönüşür.</p>
       </div>

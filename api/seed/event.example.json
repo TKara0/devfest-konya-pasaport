@@ -2,15 +2,34 @@
   "event": {
     "name": "DevFest Konya '26",
     "date": "2026-11-21",
-    "venue": "Sultan Alparslan Kongre Merkezi"
+    "venue": "Selçuk Üniversitesi Sultan Alparslan Kültür Merkezi"
   },
   "roles": {
-    "admins": ["yonetici@example.com"],
+    "admins": [
+      "yonetici@example.com"
+    ],
     "staff": []
   },
   "raffles": [
-    { "id": "gorev", "name": "Görev Çekilişi", "tasks": ["stand", "game", "linkedin", "instagram"], "weight": "tickets" },
-    { "id": "oturum", "name": "Oturum Çekilişi", "tasks": ["session"], "weight": "count" }
+    {
+      "id": "gorev",
+      "name": "Görev Çekilişi",
+      "tasks": [
+        "stand",
+        "game",
+        "linkedin",
+        "instagram"
+      ],
+      "weight": "tickets"
+    },
+    {
+      "id": "oturum",
+      "name": "Oturum Çekilişi",
+      "tasks": [
+        "session"
+      ],
+      "weight": "count"
+    }
   ],
   "tasks": [
     {
@@ -22,12 +41,30 @@
       "reward": 1,
       "rewardLabel": "Stant başına 1 hak",
       "steps": [
-        { "id": "stand-gdg", "label": "GDG on Campus Selçuk" },
-        { "id": "stand-labirent", "label": "Hogwarts Labirenti" },
-        { "id": "stand-sapka", "label": "Seçmen Şapka" },
-        { "id": "stand-gazete", "label": "Kehanet Postası" },
-        { "id": "stand-sponsor-a", "label": "Sponsor Stantı A" },
-        { "id": "stand-sponsor-b", "label": "Sponsor Stantı B" }
+        {
+          "id": "stand-gdg",
+          "label": "GDG on Campus Selçuk"
+        },
+        {
+          "id": "stand-labirent",
+          "label": "Hogwarts Labirenti"
+        },
+        {
+          "id": "stand-sapka",
+          "label": "Seçmen Şapka"
+        },
+        {
+          "id": "stand-gazete",
+          "label": "Kehanet Postası"
+        },
+        {
+          "id": "stand-sponsor-a",
+          "label": "Sponsor Stantı A"
+        },
+        {
+          "id": "stand-sponsor-b",
+          "label": "Sponsor Stantı B"
+        }
       ]
     },
     {
@@ -48,9 +85,18 @@
       "reward": 1,
       "rewardLabel": "Oyun başına 1 hak",
       "steps": [
-        { "id": "game-reflex", "label": "Reflex Click" },
-        { "id": "game-duello", "label": "Büyü Düellosu" },
-        { "id": "game-quidditch", "label": "Quidditch Kaçışı" }
+        {
+          "id": "game-reflex",
+          "label": "Reflex Click"
+        },
+        {
+          "id": "game-duello",
+          "label": "Büyü Düellosu"
+        },
+        {
+          "id": "game-quidditch",
+          "label": "Quidditch Kaçışı"
+        }
       ]
     },
     {
@@ -75,26 +121,162 @@
     }
   ],
   "halls": [
-    { "id": "salon-1", "name": "Salon 1" },
-    { "id": "salon-2", "name": "Salon 2" }
+    {
+      "id": "salon-1",
+      "name": "Gryffindor Salonu"
+    },
+    {
+      "id": "salon-2",
+      "name": "Slytherin Salonu"
+    }
   ],
   "sessions": [
-    { "id": "s01", "slot": "09:00", "end": "09:50", "hall": "salon-1", "title": "Açılış ve Keynote", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s02", "slot": "10:00", "end": "10:45", "hall": "salon-1", "title": "Oturum 2", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s03", "slot": "10:00", "end": "10:45", "hall": "salon-2", "title": "Oturum 3", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s04", "slot": "11:00", "end": "11:45", "hall": "salon-1", "title": "Oturum 4", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s05", "slot": "11:00", "end": "11:45", "hall": "salon-2", "title": "Oturum 5", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s06", "slot": "13:30", "end": "14:15", "hall": "salon-1", "title": "Oturum 6", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s07", "slot": "13:30", "end": "14:15", "hall": "salon-2", "title": "Oturum 7", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s08", "slot": "14:30", "end": "15:15", "hall": "salon-1", "title": "Oturum 8", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s09", "slot": "14:30", "end": "15:15", "hall": "salon-2", "title": "Oturum 9", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s10", "slot": "15:30", "end": "16:15", "hall": "salon-1", "title": "Oturum 10", "speaker": "Konuşmacı belirlenecek" },
-    { "id": "s11", "slot": "15:30", "end": "16:15", "hall": "salon-2", "title": "Oturum 11", "speaker": "Konuşmacı belirlenecek" }
+    {
+      "id": "s01",
+      "slot": "10:00",
+      "end": "10:30",
+      "hall": "salon-1",
+      "title": "Açılış Konuşması"
+    },
+    {
+      "id": "s02",
+      "slot": "10:45",
+      "end": "11:15",
+      "hall": "salon-1",
+      "title": "Tek Agent'tan Agent Orkestrasyonuna",
+      "speaker": "Mert Çobanov"
+    },
+    {
+      "id": "s03",
+      "slot": "11:30",
+      "end": "12:00",
+      "hall": "salon-1",
+      "title": "Beyond Prompting: Agent Identity, Runtime and the Future of AI Systems",
+      "speaker": "Alper Sarı"
+    },
+    {
+      "id": "s04",
+      "slot": "11:30",
+      "end": "12:00",
+      "hall": "salon-2",
+      "title": "AI Review & Mobil Uygulamalarda On-Device AI",
+      "speaker": "Abdülkerim Karaman"
+    },
+    {
+      "id": "s05",
+      "slot": "12:15",
+      "end": "12:45",
+      "hall": "salon-1",
+      "title": "Navigating Modern DevOps: Basics, Career Roadmap, and the AI Evolution",
+      "speaker": "Çiğdem Kadakoğlu"
+    },
+    {
+      "id": "s06",
+      "slot": "12:15",
+      "end": "12:45",
+      "hall": "salon-2",
+      "title": "Beyond the Cloud: On-Device Web LLM Inference with LiteRT-LM",
+      "speaker": "Ege Kaan Işık"
+    },
+    {
+      "id": "s07",
+      "slot": "13:45",
+      "end": "14:15",
+      "hall": "salon-1",
+      "title": "Yapay Zekâ Verimliliği ve Güvenliği",
+      "speaker": "Buğra Ayan"
+    },
+    {
+      "id": "s08",
+      "slot": "13:45",
+      "end": "14:15",
+      "hall": "salon-2",
+      "title": "Building AI-Powered Android Apps with Supabase",
+      "speaker": "Safa Orhan"
+    },
+    {
+      "id": "s09",
+      "slot": "14:30",
+      "end": "15:00",
+      "hall": "salon-1",
+      "title": "Backyard Barista on Cloud Run",
+      "speaker": "Esra Kadah"
+    },
+    {
+      "id": "s10",
+      "slot": "14:30",
+      "end": "15:00",
+      "hall": "salon-2",
+      "title": "RPA 101: Automating the Future of Work",
+      "speaker": "Asude Şenözlüler"
+    },
+    {
+      "id": "s11",
+      "slot": "15:15",
+      "end": "15:45",
+      "hall": "salon-1",
+      "title": "Is Your Agent Actually Working? Evaluating AI Agents in Practice",
+      "speaker": "Omar Elcircevi"
+    }
   ],
   "agenda": [
-    { "id": "a01", "start": "08:30", "end": "09:00", "hall": null, "title": "Kayıt ve karşılama" },
-    { "id": "a02", "start": "10:45", "end": "11:00", "hall": null, "title": "Kahve arası" },
-    { "id": "a03", "start": "12:00", "end": "13:30", "hall": null, "title": "Öğle arası", "note": "Stantları gezmek için iyi bir zaman" },
-    { "id": "a04", "start": "16:30", "end": "17:15", "hall": "salon-1", "title": "Çekiliş ve kapanış" }
+    {
+      "id": "a01",
+      "start": "10:30",
+      "end": "10:45",
+      "hall": null,
+      "title": "Ara"
+    },
+    {
+      "id": "a02",
+      "start": "11:15",
+      "end": "11:30",
+      "hall": null,
+      "title": "Ara"
+    },
+    {
+      "id": "a03",
+      "start": "12:00",
+      "end": "12:15",
+      "hall": null,
+      "title": "Ara"
+    },
+    {
+      "id": "a04",
+      "start": "12:45",
+      "end": "13:45",
+      "hall": null,
+      "title": "Öğle Arası",
+      "note": "Stantları gezmek için iyi bir zaman"
+    },
+    {
+      "id": "a05",
+      "start": "14:15",
+      "end": "14:30",
+      "hall": null,
+      "title": "Ara"
+    },
+    {
+      "id": "a06",
+      "start": "15:00",
+      "end": "15:15",
+      "hall": null,
+      "title": "Ara"
+    },
+    {
+      "id": "a07",
+      "start": "15:45",
+      "end": "16:00",
+      "hall": null,
+      "title": "Ara"
+    },
+    {
+      "id": "a08",
+      "start": "16:00",
+      "end": "16:30",
+      "hall": null,
+      "title": "Networking",
+      "note": "Konuşmacılarla tanışma"
+    }
   ]
 }

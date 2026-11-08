@@ -248,7 +248,7 @@ test('seed betiği geçersiz akışta veritabanına dokunmadan çıkış kodu 1 
     };
     const cases = [
       [(c) => { c.halls.pop(); }, /tam olarak 2 salon/],
-      [(c) => { c.sessions[2].hall = 'salon-1'; }, /zaman çakışması/],
+      [(c) => { c.sessions.find((s) => s.hall === 'salon-2').hall = 'salon-1'; }, /zaman çakışması/], // paralel oturumu diğer salona taşı
       [(c) => { c.sessions[0].hall = 'salon-9'; }, /bilinmeyen salon/],
       [(c) => { c.sessions[0].end = c.sessions[0].slot; }, /sonra olmalı/],
       [(c) => { c.agenda[0].id = 's01'; }, /tekrarlı/],

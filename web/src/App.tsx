@@ -252,7 +252,7 @@ function Main({ hash }: { hash: string }) {
       />
       <main>
         <div className={`shell${phase === 'ready' ? ' with-nav' : ''}`}>{body}</div>
-        <div className="band" role="img" aria-label="Konya surları ve Sultan Alparslan Kongre Merkezi çizimi" />
+        <div className="band" role="img" aria-label="Konya surları ve Sultan Alparslan Kültür Merkezi çizimi" />
       </main>
       <div className={`toast${toast ? ' show' : ''}`} role="status">
         {toast}

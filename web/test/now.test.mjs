@@ -7,9 +7,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { istanbulClock, flowItems, nowState, statusOf, leftLabel, atTime, dayLabel, toMinutes } from '../src/now.ts';
 
-const example = JSON.parse(readFileSync(new URL('../../api/seed/event.example.json', import.meta.url), 'utf8'));
+// Sabit test akışı (test/fixtures/flow.json): gerçek akış değiştikçe testler bozulmasın diye ayrı tutulur.
+const example = JSON.parse(readFileSync(new URL('./fixtures/flow.json', import.meta.url), 'utf8'));
 const cfg = { event: example.event, halls: example.halls, sessions: example.sessions, agenda: example.agenda };
-// Örnek akış: 08:30 kayıt (tüm alan) · 09:00 s01 (Salon 1) · 10:00 s02|s03 · 10:45 kahve (tüm alan) · 11:00 s04|s05
+// Test akışı: 08:30 kayıt (tüm alan) · 09:00 s01 (Salon 1) · 10:00 s02|s03 · 10:45 kahve (tüm alan) · 11:00 s04|s05
 //             12:00 öğle (tüm alan) · 13:30 s06|s07 … 15:30 s10|s11 (16:15) · 16:30–17:15 Salon 1 çekiliş ve kapanış
 const at = (hhmm, date = '2026-11-21') => ({ date, minutes: toMinutes(hhmm) });
 const ids = (s) => s.halls.map((h) => h.current?.id ?? null);
@@ -144,4 +145,17 @@ test('metin yardımcıları', () => {
   const cases = { '09:00': "09:00'da", '10:00': "10:00'da", '11:00': "11:00'de", '12:00': "12:00'de", '13:00': "13:00'te", '14:30': "14:30'da", '15:00': "15:00'te", '16:00': "16:00'da", '17:00': "17:00'de", '18:00': "18:00'de", '19:00': "19:00'da", '20:00': "20:00'de", '08:40': "08:40'ta", '09:15': "09:15'te", '09:50': "09:50'de", '10:20': "10:20'de" };
   for (const [t, want] of Object.entries(cases)) assert.equal(atTime(t), want);
   assert.equal(dayLabel('2026-11-21'), '21 Kasım');
+});
+
+test('gerçek akış (api/seed/event.example.json): öğle arasında tek şerit, 17:00 bitti', () => {
+  const real = JSON.parse(readFileSync(new URL('../../api/seed/event.example.json', import.meta.url), 'utf8'));
+  const rcfg = { event: real.event, halls: real.halls, sessions: real.sessions, agenda: real.agenda };
+  assert.equal(nowState(rcfg, at('09:30')).phase, 'before');
+  const lunch = nowState(rcfg, at('13:00'));
+  assert.equal(lunch.phase, 'live');
+  assert.equal(lunch.common?.title, 'Öğle Arası');
+  const s1050 = nowState(rcfg, at('10:50'));
+  assert.equal(s1050.halls[0].current?.id, 's02');
+  assert.equal(s1050.halls[1].current, null, 'Slytherin 10:45-11:15 arası boş');
+  assert.equal(nowState(rcfg, at('17:00')).phase, 'after');
 });
